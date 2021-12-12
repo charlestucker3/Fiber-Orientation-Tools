@@ -16,6 +16,6 @@ Included are functions to calculate:
 - Thermal stress and thermal expansion tensors for any stiffness model.
 - The stiffness of a composite plate whose orientation varies across its thickness, using classical laminated plate theory.  
 
-A number of smaller utility functions are also included.  
+A number of smaller utility functions are also included.  Example scripts show how the functions are used in some common applications.   
 
 To use the tools, click the green **Code** button, and select **Download ZIP**.  Unzip the file and follow the installation suggestions in the _Documentation_ folder.  
