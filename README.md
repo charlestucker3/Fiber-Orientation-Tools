@@ -10,7 +10,7 @@ This software is distributed under an MIT license; see the LICENSE file for deta
 Included are functions to calculate:
 - Flow-induced fiber orientation using a variety of tensor-based models: Jeffrey, Folgar-Tucker or anisotropic rotary diffusion (Phelps-Tucker 5-constant, iARD, pARD, MRD and Wang/2-constant models), and slow kinetics (SRF, RSC and RPR).
 - A range of closure approximations for the fourth-order orientation tensor: linear, quadratic, hybrid, orthotropic, natural and IBOF.
-- The full orientation distribution function under flow, either planar or 3-D orientation (Jeffery, Folgar-Tucker and ARD).
+- The full orientation distribution function, transient or steady state, for either planar or 3-D orientation (Jeffery, Folgar-Tucker and ARD).
 - Evolution of the fiber length distribution using the Phelps-Tucker model.
 - Linear elastic stiffness via mean-field models (Halpin-Tsai, dilute Eshelby, Mori-Tanaka and Lielens/double inclusion) for either unidirectional or distributed fiber orientation.
 - Thermal stress and thermal expansion tensors for any stiffness model.
