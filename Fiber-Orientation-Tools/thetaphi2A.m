@@ -54,7 +54,7 @@ A(2,1) = A(1,2);
 A(2,2) = sum(p(2,:).*p(2,:).*weight) / sum(weight);
 A(2,3) = sum(abs(p(2,:).*p(3,:)).*weight) / sum(weight);
 A(3,1) = A(1,3);
-A(3,3) = A(2,3);
+A(3,2) = A(2,3);
 A(3,3) = sum(p(3,:).*p(3,:).*weight) / sum(weight);
 
 return
