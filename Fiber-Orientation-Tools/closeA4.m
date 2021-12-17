@@ -5,16 +5,18 @@ function A4 = closeA4(A2, version)
 %   determines the particular closure approximation to use.
 %
 %   Available values of VERSION are:
-%      N  Orthotropic equivalent of the natural closure (ORN)
-%      E  Same as N (ORE)
-%      I  Fitted IBOF closure of Chung and Kwon (2002)
-%      H  Hybrid closure
-%      Q  Quadratic closure
-%      L  Linear closure (not recommended for flow problems)
-%      P  Peaked orthotropic closure (ORP)
-%      S  Smooth orthotropic closure (ORS)
+%      B  Bingham closure of Chaubal and Leal (1988)
+%      E  Orthotropic equivalent of the natural closure (ORE)
 %      F  Cintra and Tucker fitted closure (ORF)
 %      G  Cintra and Tucker low-CI fit (ORL)
+%      H  Hybrid closure
+%      I  Fitted IBOF closure of Chung and Kwon (2002)
+%      L  Linear closure (not recommended for flow problems)
+%      N  Orthotropic equivalent of the natural closure; same as ORE
+%      P  Peaked orthotropic closure (ORP)
+%      Q  Quadratic closure
+%      S  Smooth orthotropic closure (ORS)
+%      W  Wide-range closure of Chung and Kwon (2001) (ORW)
 %
 %  Note the RSC-type versions of A4 are not available here.  That 
 %  must be handled in the function that calculates dA2/dt.
@@ -280,6 +282,30 @@ switch upper(version(1))
                 A4(6,6) = 0.5*( -1.0 + 2.0*Evals(1) + 2.0*Evals(2) ...
                     - A4(1,1) - A4(2,2) + A4(3,3) );
                 
+                
+            case {'W'}  % --- ORW closure of Chung and Kwon,
+                        %     Polymer Composites, 22, 636-639, 2001.
+                        
+                CW = [0.070055,  0.339376, 0.590331, ...
+                     -0.396796,  0.333693, 0.411944; ...
+                      0.115177, -0.368267, 0.252880,  ...
+                      0.094820,  0.800181, 0.535224; ...
+                      1.249811, -2.148297, 0.898521, ...
+                     -2.290157,  1.044147, 1.934914];
+                % First three diagonal components
+                A4tmp = CW * [1, Evals(1), Evals(1)^2, Evals(2), ...
+                                 Evals(2)^2, Evals(1)*Evals(2)]';
+                A4(1,1) = A4tmp(1);
+                A4(2,2) = A4tmp(2);
+                A4(3,3) = A4tmp(3);
+             
+                %        -- apply normalization condtitions
+                A4(4,4) = 0.5*( 1.0 - 2.0*Evals(1) + A4(1,1) ...
+                    - A4(2,2) - A4(3,3) );
+                A4(5,5) = 0.5*( 1.0 - 2.0*Evals(2) - A4(1,1) ...
+                    + A4(2,2) - A4(3,3) );
+                A4(6,6) = 0.5*( -1.0 + 2.0*Evals(1) + 2.0*Evals(2) ...
+                    - A4(1,1) - A4(2,2) + A4(3,3) );
             otherwise
                 fprintf(1,'ortho.m: %c is not a legal value of VERSION\n', version);
                 
@@ -292,9 +318,6 @@ switch upper(version(1))
         A4(3,2) = A4(2,3);
         A4(3,1) = A4(5,5);
         A4(1,3) = A4(3,1);
-       
-        Id4 = diag( [1 1 1 0.5 0.5 0.5], 0);  % contracted 4th-order identity tensor
-        R4  = diag( [1 1 1 2   2   2  ], 0);  % inverse of 4th-order identity tensor
 
         %--- Rotate back to laboratory axes --------
         %---- 6x6 rotation matrices and associated quantities -----
@@ -320,8 +343,7 @@ switch upper(version(1))
         
         Q  = Qa+Qb;  % rotation matrix for   symmetric tensors
         
-%       A4 = Q *A4*R4*inv(Q)*Id4;  % Fourth-order tensor in lab coords.
-        A4 = Q * A4 * Q';          % From Nadeau and Ferrari, 1998.
+        A4 = Q * A4 * Q'; % From Nadeau and Ferrari, 1998.
 
 
-end  % ends the hybrid/orthotropic decision block from the top of the file
+end  % ends the switch statement from the top of the file
