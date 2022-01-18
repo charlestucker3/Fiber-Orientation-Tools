@@ -1,18 +1,39 @@
-function [p,tricon] = spheremesh(nlevels, varargin)
-%[P TRICON] = SPHEREMESH(NLEVELS) generates a triangular mesh on 
-%   the unit sphere, by refining an initial octahedral mesh.
-%   NLEVELS is the number of refinement levels (0 for no refinement).
-%   P (3 x numnod) returns the nodal coordinates and
-%   TRICON (numel x 3) returns the node numbers for each element.  
+function [p,tricon, varargout] = spheremesh(nseg, varargin)
+%[P TRICON] = SPHEREMESH(NSEG) generates a triangular mesh on 
+%   the unit sphere by refining an initial polyhedral mesh of triangles. Each edge of
+%   the initial polyhedron is divided into NSEG segments, and a mesh of
+%   NSEG^2 triangular elements is generated on each initial triangle. P (3
+%   x numnod) returns the nodal coordinates and TRICON (numel x 3) returns
+%   the node numbers for each element.  The default initial shape is an
+%   octahedron.  
 %
-%[P TRICON] = SPHEREMESH(NLEVELS, SHAPE) uses the SHAPE as the initial
-%   mesh geometry.  Options for SHAPE are:
-%       'oct'   Octahedron (the default)
-%       'hemi'  Half an octahedron, creating a hemispherical mesh
-%       'tet'   Tetrahedron
-%       'ico'   Icosahedron (20 triangular faces)
-%       'cap'   10 faces, comprising half of the icosahedral mesh
-%               This shape has p <-> -p symmetry.  
+%   The default mapping for the octahedron is an equal-area mapping (A.
+%   Holhos and D. Rosca, Computers and Math with Applications, 67 (2014)
+%   1092-1107).  This spreads the points almost evenly, and all elements
+%   have the same area.  It is also possible to use a radial mapping from
+%   the initial mesh (p = x/|x|), and this is the only option for other
+%   initial shapes (see below).
+%
+%[P, TRICON, PCEN] = SPHEREMESH(NSEG) also returns the coordinates of the
+%   element centroids PCEN (3 x numel).  The centroids are computed on the
+%   initial polyhedral faces, then mapped to the sphere using the same
+%   mapping as the nodes.
+%
+%[P TRICON] = SPHEREMESH(NSEG, SHAPE) uses SHAPE as the initial
+%   polyhedron.  SHAPE can also control the mapping of points octahedral
+%   meshes.  Options for SHAPE are:
+%     'oct'     Octahedron, equal-area mapping (the default)
+%     'hemi'    Half an octahedron, creating a hemispherical mesh;
+%               equal-area mapping
+%     'octrad'  Octahedron, radial mapping
+%     'hemirad' Half an octahedron, radial mapping
+%     'tet'     Tetrahedron, radial mapping
+%     'ico'     Icosahedron (20 triangular faces), radial mapping
+%     'cap'     10 faces, comprising half of the icosahedral mesh; radial
+%               mapping. This mesh covers half of the sphere and has no
+%               nodes that are antipodal to other nodes.
+%
+%   A full octahedral mesh has 8*NSEG^2 elements and 4*NSEG^2 + 2 nodes.
 %
 % See also: REFINEMESH, MESHCON
 
@@ -20,31 +41,23 @@ function [p,tricon] = spheremesh(nlevels, varargin)
 % (level 0) meshes are hard-coded here, but can be generated for an
 % arbitrary mesh using meshcon.m.  
 
-%    The numbers of nodes and elements in the full octahedral mesh are:
-%    NLEVELS  Nodes   Elements
-%        0        6          8
-%        1       18         32
-%        2       66        128
-%        3      258        512
-%        4     1026       2048
-%        5     4098       8192
-%        6    16386      32768
-%        7    65538     131072
-%        8   262146     524288
-%        9  1048578    2097152
+
+% Ensure a reasonable value of nseg
+if nseg < 1
+    error('NSEG must be >= 1')
+end
 
 % Set the shape of the initial mesh
 if nargin >= 2
     shape = lower(varargin{1});
-    shape = shape(1:3);
 else
-    shape = 'oct'; % The default shape: octahedral
+    shape = 'oct'; % The default shape: octahedral, equal-area mapping
 end
 
 % -- Generate the initial mesh (these are all hard-coded)
 switch shape
     
-    case 'hem'
+    case {'hemi', 'hemirad'}
         % Use only the upper (z >= 0) hemisphere of the octahedron
         p = [1 0 0 -1  0;
              0 1 0  0 -1;
@@ -59,8 +72,15 @@ switch shape
         % Important: order of edges for each element must match
         % order of nodes in tricon.  E.g., edge 1 connects nodes
         % 1&2; edge 2 connects nodes 2&3; edge 3 connects nodes 3&1.
+        
+        if strcmp(shape, 'hemi')
+            % Increase the size of the octahedron to have the same surface
+            % area as the unit sphere
+            L = sqrt(2*pi) / 3^(1/4); % Edge length of new octahedron
+            p = p * L/sqrt(2);        % Scale up the nodal coordinates
+        end
 
-    case 'oct'
+    case {'oct', 'octrad'}
         % Create a full spherical mesh based on an octahedron
         p = [1 0 0 -1  0  0;
              0 1 0  0 -1  0;
@@ -78,6 +98,13 @@ switch shape
         % Important: order of edges for each element must match
         % order of nodes in tricon.  E.g., edge 1 connects nodes
         % 1&2; edge 2 connects nodes 2&3; edge 3 connects nodes 3&1.
+        
+        if strcmp(shape, 'oct')
+            % Increase the size of the octahedron to have the same surface
+            % area as the unit sphere
+            L = sqrt(2*pi) / 3^(1/4); % Edge length of new octahedron
+            p = p * L/sqrt(2);        % Scale up the nodal coordinates
+        end
         
     case 'ico'
         % Create an icosahedral mesh
@@ -260,10 +287,41 @@ end
 
         
         
-% Refine the mesh as many levels as desired
-for n = 1:nlevels
-    [p, tricon, edgecon, triedge] = refinemesh(p, tricon, edgecon, triedge);
+% Refine the mesh.  If nseg == 1, refinemesh returns the original mesh
+% along with the element centroids.
+[p, tricon, pcen] = refinemesh(p, tricon, edgecon, triedge, nseg);
+
+% Map the polyhedral mesh to the sphere
+switch shape
+    case {'oct', 'hemi'}
+        % Equal-area mapping.  This version of the Holhos and Rosca map is
+        % given by Hardin, Michaels and Saff (2016),
+        % https://arxiv.org/abs/1607.04590 and avoids some divide-by-zero
+        % issues with the equations from the original paper.
+        
+        % Nodes
+        p(3,:) = 2*p(3,:) .* (sqrt(2)*L - abs(p(3,:))) / L^2;
+        gamma = (pi/2) * abs(p(2,:)) ./ (abs(p(1,:)) + abs(p(2,:)));
+        gamma(p(1,:)==0 & p(2,:)==0) = 0;  % Fix divide-by-zero @ N and S poles
+        p(1,:) = sign(p(1,:)) .* sqrt(1-p(3,:).^2) .* cos(gamma);
+        p(2,:) = sign(p(2,:)) .* sqrt(1-p(3,:).^2) .* sin(gamma);
+        
+        % Centroids
+        pcen(3,:) = 2*pcen(3,:) .* (sqrt(2)*L - abs(pcen(3,:))) / L^2;
+        gamma = (pi/2) * abs(pcen(2,:)) ./ (abs(pcen(1,:)) + abs(pcen(2,:)));
+        gamma(pcen(1,:)==0 & pcen(2,:)==0) = 0;  % Fix divide-by-zero
+        pcen(1,:) = sign(pcen(1,:)) .* sqrt(1-pcen(3,:).^2) .* cos(gamma);
+        pcen(2,:) = sign(pcen(2,:)) .* sqrt(1-pcen(3,:).^2) .* sin(gamma);
+        
+    otherwise
+        % Radial mapping
+        p    = p    ./ vecnorm(p);
+        pcen = pcen ./ vecnorm(pcen);
 end
 
-        
+% Return the element centroids, if requested
+if nargout >= 3
+    varargout{1} = pcen;
+end
+
 return;
