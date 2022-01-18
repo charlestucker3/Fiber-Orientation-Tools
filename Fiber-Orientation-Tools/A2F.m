@@ -1,29 +1,44 @@
-function [F, varargout] = A2F(A, F1func, F2func, varargin)
-%F = A2F(A, F1func, F2func) finds the deformation tensor F (3x3) 
-%    corresponding to the second-order orientation tensor A (3x3)
-%    under the assumptions of the Natural closure approximation. 
+function [F, varargout] = A2F(A, varargin)
+%F = A2F(A) finds the deformation tensor F (3x3) corresponding to the 
+%    second-order orientation tensor A (3x3) under the assumptions of the
+%    natural closure approximation (i.e., using the Jeffery distribution).
 %
-%F = A2F(A, F1func, F2func, TOL) improves the solution using
-%    Newton-Raphson iteration until the eigenvalues of the A recovered 
-%    from F are within TOL of the input values.  If TOL is not given on
-%    input, a value of 1e-3 is used.  This usually requires iterations
-%    only very close to the U corner.  
+%F = A2F(A, TOL) improves the solution using Newton-Raphson iteration 
+%    until the eigenvalues of the A recovered from F are within TOL of the
+%    input values.  If TOL is not given on input, a value of 1e-3 is used,
+%    which usually requires iterations only very close to the U corner.  It
+%    is possible to set TOL very low (i.e., 1e-14) for very precise
+%    solutions.
 %
-%[F, NITER, AERR] = A2F(A, F1func, F2func, TOL) also returns
+%[F, NITER, AERR] = A2F(A, TOL) also returns
 %    the number of Newton iterations NITER and AERR, the maximum absolute 
 %    error in the eigenvalues of A.    
 %
-%    The Matlab scattered interpolant objects F1func and F2func 
-%    must be passed to the function.  These are normally loaded in the 
-%    calling program using LOAD A2Ffuncs.  
+%    The files F2A.m and  A2Ffuncs.mat must be available on the Matlab
+%    path.  Usually these files are in the same directory as this function.
+
+% -- Load the Matlab scattered interpolant objects F1func and F2func.
+%    The are persistent variables, so they will only be loaded on the first
+%    call to the function and will be retained thereafter.  
+persistent F1func F2func
+if isempty(F1func)
+    load('A2Ffuncs', 'F1func', 'F2func')
+end
+
+% -- Set the error tolerance
+if nargin >= 2
+    tol = varargin{1};  % User-supplied value
+else
+    tol = 1e-3;   % The default tolerance
+end
+
+% % The algorithm will not converge unless trace(A) = 1, within tol
+if abs(trace(A) - 1) > tol
+    error('Must have trace(A) = 1 within TOL')
+end
 
 % --Find principal values and axes of A 
 [Evals, R] = eigsort(A);
-% [Evecs, Aprin] = eig(A);                 % eigenvectors/values of A
-% [Evals, sortOrder] = sort(diag(Aprin));  % sort Evals in ascending order
-% Evals = flipud(Evals);                   % change to decreasing order
-% % Sorted eigenvectors form the rotation matrix
-% R = [Evecs(:,sortOrder(3)), Evecs(:,sortOrder(2)), Evecs(:,sortOrder(1))];
 %   Now A = R * diag(Evals) * R'
 
 % -- Interpolate to get Fp, the F tensor in the principal axes of A
@@ -39,12 +54,6 @@ if isnan(Fp1) || isnan(Fp2)
     error('Cannot process NaN values of F')
 end
 
-%  - Set the error tolerance
-if nargin >= 4
-    tol = varargin{1};  % User-supplied value
-else
-    tol = 1e-3;   % The default tolerance
-end
 
 % -- Newton-Raphson iteration to improve the accuracy of the solution,
 %    if desired (or needed).  Note that this is always an option, even
