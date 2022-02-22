@@ -1,11 +1,22 @@
-function [EngCon, varargout] = halpin (Ef, Nuf, Em, Num, vf, aspect)
+function [EngCon, varargout] = halpin (Ef, Nuf, Em, Num, vf, aspect, ...
+                                       varargin)
 %HALPIN      Halpin-Tsai equations.
 %     [ENGCON]  = HALPIN(EF, NUF, EM, NUM, VF, ASPECT) calculates the
-%     linear elastic eingineering (technical) constants of a short-fiber
+%     linear elastic engineering (technical) constants of a short-fiber
 %     composite with aligned fibers using the Halpin-Tsai equations.
 %
 %     [ENGCON, C]  = HALPIN(EF, NUF, EM, NUM, VF, ASPECT) also returns the
 %     stiffness tensor C in 6x6 matrix form.
+%
+%     [ENGCON, C, BETA]  = HALPIN(EF, NUF, EM, NUM, VF, ASPECT, ALPHAF,
+%     ALPHAM) also returns the thermal stress tensor BETA in 6x1 form.
+%     ALPHAF and ALPHAM give the thermal expansion of the fiber and matrix,
+%     respectively, and must be present when calculating BETA. The thermal
+%     expansion tensor of the composite can be calculated as
+%        ALPHA = INV4(C) * R4 * BETA;
+%     ALPHAM must be a scalar.  ALPHAF can be a scalar (isotropic fiber
+%     properties) or a second-order tensor in 6x1 form.  If ALPHAF is a
+%     tensor, it must be transversely isotropic about the 1 axis.  
 %
 %     Input:
 %          EF     = Fiber Young's modulus
@@ -64,9 +75,36 @@ EngCon(7) = EngCon(2)/(2.0*EngCon(4)) - 1.0;
 %    Poisson ratio Nu31:
 EngCon(8) = EngCon(9) * EngCon(3) / EngCon(1);
 
-if nargout > 1
+if nargout >= 2
     % Convert engineering constants to C tensor
-    varargout{1} = eng2C(EngCon);
+    C = eng2C(EngCon);
+    varargout{1} = C; 
 end
-%
+
+if nargout >= 3
+    if nargin >= 8  % Compute the thermal stress tensor of the composite
+        % Thermal expansion tensor for the fiber
+        if length(varargin{1}) == 1 % alphaf is a scalar
+            alphaf = varargin{1} * [1,1,1,0,0,0]';
+        elseif length(varargin{1}) == 6 % alphaf is a tensor
+            alphaf = reshape(varargin{1}, 6, 1);
+        else
+            error('alphaf must be scalar or 6x1')
+        end
+        % Stiffness tensors for the fiber and matrix
+        Cf = iso2C(Ef, Nuf);
+        Cm = iso2C(Em, Num);
+        % Thermal stress tensors for the fiber and matrix
+        R4 = diag([1,1,1,2,2,2]);
+        betaf = Cf * R4 * alphaf;
+        betam = Cm * R4 * (varargin{2} * [1,1,1,0,0,0]');
+        % Thermal stress tensor for the composite, Eqn. (8.89)
+        beta = (Cf - C) *R4* inv4(Cf - Cm) *R4* betam ...
+             + (Cm - C) *R4* inv4(Cm - Cf) *R4* betaf;
+        varargout{2} = beta;
+    else
+        error('Not enough input arguments to compute thermal expansion')
+    end
+end
+
 return

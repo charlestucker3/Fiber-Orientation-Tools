@@ -1,28 +1,29 @@
-function [t, Av, varargout] = solvePsiARD(L, model, param, xi, ...
+function [t, Av, varargout] = solvePsiARD(L, diffModel, diffParam, xi, ...
                               tEnd, dtIn, ntheta, nphi, Co, varargin)
-%[T, AV] = SOLVEPSIARD(L, MODEL, PARAM, XI, TEND, DTIN, NTHETA, NPHI, CO) 
-%    solves an anisotropic rotary diffusion (ARD) model for the 3-D
-%    orientation distribution function PSI(THETA, PHI) at times
+%[T, AV] = SOLVEPSIARD(L, DIFFMODEL, DIFFPARAM, XI, TEND, DTIN, NTHETA, 
+%    NPHI, CO) solves an anisotropic rotary diffusion (ARD) model for the
+%    3-D orientation distribution function PSI(THETA, PHI) at times
 %    0:DTIN:TEND, for velocity gradient L and particle shape factor XI. L
 %    must be 3x3.
-%    MODEL is a character string specifying the ARD model for the rotary
-%    diffusion tensor C.  PARAM gives the model parameters, and its
-%    interpretation is dependent on the MODEL.  Options for MODEL and PARAM
-%    are:
-%      'F'  Folgar-Tucker isotropic model, for code testing. PARAM(1) = CI
-%      'I'  Moldex3D iARD model.   PARAM = [CI, CM]
-%      'P'  Moldex3D pARD model.   PARAM = [CI, omega]
-%      'M'  Moldflow's MRD model.  PARAM = [CI, D2, D3], with D1 = 1  
-%      'W'  Wang model (WPT)       PARAM = [b1, b3]
-%    See Favaloro and Tucker, Composites Part A, 126, 105605 (2019) for 
-%    more information on the various ARD models.
+%    DIFFMODEL is a character string specifying the ARD model for the
+%    rotary diffusion tensor C.  DIFFPARAM gives the model parameters, and
+%    its interpretation is dependent on the DIFFMODEL.  Options for
+%    DIFFMODEL and DIFFPARAM are:
+%      'F'  Folgar-Tucker isotropic model, for testing. DIFFPARAM(1) = CI
+%      'I'  Moldex3D iARD model.   DIFFPARAM = [CI, CM]
+%      'P'  Moldex3D pARD model.   DIFFPARAM = [CI, omega]
+%      'M'  Moldflow's MRD model.  DIFFPARAM = [CI, D2, D3], with D1 = 1  
+%      'W'  Wang model (WPT)       DIFFPARAM = [b1, b3]
+%    See Favaloro and Tucker, Composites Part A, 126, 105605 (2019) or
+%    Section 5.6 of Fundamentals of Fiber Orientation (C.L. Tucker, Hanser,
+%    2022) for more information on the various ARD models.
 %
 %    The initial condition is isotropic, unless otherwise specified via
-%    VARGIN (see below). The solution is calculated on grid of NTHETA by
+%    VARARGIN (see below). The solution is calculated on grid of NTHETA by
 %    NPHI cells covering a hemisphere. CO is the maximum Courant number,
 %    and may be used to determine a time sub-step.  CO <= 1 is normal.  The
 %    method is finite differences and the time integration is fully
-%    implicit. T is a vector of the solution times, and AV(J,K) contains
+%    implicit. T is a vector of the solution times, and AV(K.J) contains
 %    the Kth component of the second-order orientation tensor in contracted
 %    form for time T(J).
 %
@@ -30,8 +31,9 @@ function [t, Av, varargout] = solvePsiARD(L, model, param, xi, ...
 %    ignored.
 %
 %[T, AV, A4V] = SOLVEPSIARD(... also returns the fourth-order orientation 
-%    tensor components at each time step.  *** NOT IMPLEMENTED YET. NEED
-%    TO FIGURE OUT HOW TO STORE A4V.
+%    tensor components at each time step.  A4V(M,J) contains the Mth
+%    component of A4 in vector form, arranged as in TENS2VEC4, at time
+%    T(J).
 %
 %[T, AV, A4V, PSI, THETA, PHI, PX, PY, PZ, NSUB] = SOLVEPSIARD(... also 
 %    returns the distribution function PSI at each time in T, at cell
@@ -129,6 +131,9 @@ pz =           cos(theta);
 % The ppA matrix, used to calculate the second-order orientation tensor
 % at each time. Av(m,n) will be the mth contracted component of
 % the second-order orientation tensor at time step n.  Av is 6 x nsteps+1.
+% ppA4 will be used to calculation the fourth-order orientation tensor. 
+% A4v(m,n) will be the mth component of the fourth-order tensor at time
+% step n.  The order of components matches tens2vec4.
 nnod = ntheta *nphi;   % Number of cells (nodes) where psi is calculated
 px = reshape(px, nnod, 1);  % Arrange p components as column vectors
 py = reshape(py, nnod, 1);
@@ -136,8 +141,24 @@ pz = reshape(pz, nnod, 1);
 Aall = repmat(Acell, nphi, 1); % Aall has cell areas for every cell
 ppA = [px.*px.*Aall, py.*py.*Aall, pz.*pz.*Aall, ...
        py.*pz.*Aall, pz.*px.*Aall, px.*py.*Aall]';  % Note the transpose
-% Now the tensor calculation will be Av = 2 * ppA * psi.  
-% The factor of 2 appears because the solution grid only covers half of the
+ppA4 = [px.*px.*px.*px.*Aall, ...
+        py.*py.*py.*py.*Aall, ...
+        pz.*pz.*pz.*pz.*Aall, ...
+        py.*py.*pz.*pz.*Aall, ...
+        pz.*pz.*px.*px.*Aall, ...
+        px.*px.*py.*py.*Aall, ...
+        px.*px.*py.*pz.*Aall, ...
+        px.*px.*pz.*px.*Aall, ...
+        px.*px.*px.*py.*Aall, ...
+        py.*py.*py.*pz.*Aall, ...
+        py.*py.*pz.*px.*Aall, ...
+        py.*py.*px.*py.*Aall, ...
+        pz.*pz.*py.*pz.*Aall, ...
+        pz.*pz.*pz.*px.*Aall, ...
+        pz.*pz.*px.*py.*Aall]';
+% Now the tensor calculations will be Av = 2 * ppA * psi
+% and A4v = 2 * ppA4 * psi
+% The factors of 2 appear because the solution grid only covers half the
 % unit sphere.
 
 % --- Jeffery velocities: vtheta = d(theta)/dt at the NS cell boundaries
@@ -210,7 +231,8 @@ end
 % indexed by k = i + (j-1)*ntheta.
 % psiGrid = reshape(psi(:,n), ntheta, nphi) will give psi in an (i,j) grid.
 psi  = zeros(nnod, nsteps+1);
-Av   = zeros(6,    nsteps+1);  % Store orientation tensor results
+Av   = zeros(6,    nsteps+1);  % Store second-order orientation tensors
+A4v  = zeros(15,   nsteps+1);  % Store fourth-order orientation tensors
 
 % --- Initial condition
 if nargin < 11
@@ -220,8 +242,9 @@ else
     % Use the user-supplied IC
     psi(:,1) = varargin{2};
 end
-% Orientation tensor at the initial condition
-Av(:,1) = 2 * ppA * psi(:,1);
+% Orientation tensors at the initial condition
+Av( :,1) = 2 * ppA  * psi(:,1);
+A4v(:,1) = 2 * ppA4 * psi(:,1);
 
 %% --- Main solution loop
 for n = 1:nsteps        % Loop over stored time steps
@@ -232,23 +255,23 @@ for n = 1:nsteps        % Loop over stored time steps
         %     C at the start of the sub-step
         A = vec2tens(2 * ppA * psiTmp);   % A, in 3x3 matrix form
         
-        switch upper(model)
+        switch upper(diffModel)
             case 'F'  % Folgar-Tucker, isotropic rotary diffusion
-                C = param(1) * eye(3);
+                C = diffParam(1) * eye(3);
             case 'I'  % Moldex3D iARD model
-                C = param(1) * (eye(3) - 4*param(2)*D*D/(gammaDot^2));
+                C = diffParam(1) * (eye(3) - 4*diffParam(2)*D*D/(gammaDot^2));
             case 'P'  % Moldex3D pARD model
                 [~, R] = eigsort(A);  % Sorted eigenvectors of A
-                C = param(1) * (R(:,1)*R(:,1)' + param(2)*R(:,2)*R(:,2)' ...
-                    + (1-param(2))*R(:,3)*R(:,3)');
+                C = diffParam(1) * (R(:,1)*R(:,1)' + diffParam(2)*R(:,2)*R(:,2)' ...
+                    + (1-diffParam(2))*R(:,3)*R(:,3)');
             case 'M'  % Moldflow MRD model
                 [~, R] = eigsort(A);  % Sorted eigenvectors of A
-                C = param(1) * (R(:,1)*R(:,1)' + param(2)*R(:,2)*R(:,2)' ...
-                    + param(3)*R(:,3)*R(:,3)');
+                C = diffParam(1) * (R(:,1)*R(:,1)' + diffParam(2)*R(:,2)*R(:,2)' ...
+                    + diffParam(3)*R(:,3)*R(:,3)');
             case 'W'  % Wang/WPT/2-constant model
-                C = param(1)*eye(3) + param(2)*A*A;
+                C = diffParam(1)*eye(3) + diffParam(2)*A*A;
             otherwise
-                error('%s is not a legal value of model', model)
+                error('%s is not a legal value of model', diffModel)
         end
         
         % -- Theta and phi components of surface diffusivities, at 
@@ -398,7 +421,8 @@ for n = 1:nsteps        % Loop over stored time steps
     
     % -- Store the results for this big step
     psi(:,n+1) = psiTmp;
-    Av(:, n+1) = 2 * ppA * psiTmp;
+    Av(:, n+1) = 2 * ppA  * psiTmp;
+    A4v(:,n+1) = 2 * ppA4 * psiTmp;
     
 end % End of the loop over stored time steps
 
@@ -407,14 +431,15 @@ end % End of the loop over stored time steps
 if strcmp(calcType, 'steady')
     % Return only the final time step
     psi = psi(:,end);
-    Av  = Av(:,end);
+    Av  = Av( :,end);
+    A4v = A4v(:,end);
 end
 
 
 %% --- Provide any optional output arguments
 if nargout >= 3
     % Fourth-order orientation tensor
-    varargout{1} = 'A4v not implemented yet';
+    varargout{1} = A4v;
 end
 
 if nargout >= 4

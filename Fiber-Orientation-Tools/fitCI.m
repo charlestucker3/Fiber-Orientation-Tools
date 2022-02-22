@@ -20,8 +20,8 @@ end
 % Velocity gradient: 1-3 simple shear
 L = zeros(3); L(1,3) = 1;
 
-% Use fzero to find CI
-CI = fzero(@(Ctrial) A11-A11steady(L, xi, closure, 'F', Ctrial), [1e-6 1]);
+% Use fzero and A11steady (see below) to find CI
+CI = fzero(@(Ctrial) A11 - A11steady(L, xi, closure, 'F', Ctrial), [1e-6 1]);
 
 % Find A13 and A33 if desired
 if nargin >= 2
@@ -31,6 +31,34 @@ if nargin >= 2
         varargout{2} = Av(5); % A13
     end
 end
+
+return
+end
+
+
+%% ---------------------------------------------------------- %%
+
+function A11 = A11steady(L, xi, closure, diffModel, diffParam)
+% A11 steady is used only by fitCI.   It calls Asteady, and possibly
+% Adot2, to find the steady-state value of A11 in 6x1 vector form.
+
+Aviso = tens2vec(eye(3)/3);  % Isotropic orientation, vector form
+
+% Set initial guess for Asteady
+if (closure == 'I' || closure == 'H') && diffParam < 1e-3
+    % Need to integrate the ODE for a while to get close to steady state
+    options = odeset('RelTol', 1e-6, 'AbsTol', 1e-9);
+    tspan = 0:20;
+    [~, Av] = ode45(@(t,Av) Adot2(Av, L, xi, closure, diffModel, diffParam), ...
+                    tspan, Aviso, options);
+    Avzero = Av(end,:)';
+else
+    Avzero = Aviso; % The isotropic state will work for most cases
+end
+
+% Find the steady-state A tensor
+Av = Asteady(Avzero, L, xi, closure, diffModel, diffParam);
+A11 = Av(1);
 
 return
 end

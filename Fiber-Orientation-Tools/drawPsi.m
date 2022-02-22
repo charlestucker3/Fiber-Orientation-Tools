@@ -1,7 +1,8 @@
 function varargout = drawPsi(F)
 %DRAWPSI(F) draws a sphere colored by the orientation distribution
-%    function psi(p) corresponding to the deformation gradient 
-%    tensor F (3x3).  Use A2F to find F from an orienation tensor A.
+%    function psi(p) corresponding to the deformation gradient tensor F
+%    (3x3), using the Jeffery distribution function.  Use A2F to find F
+%    from an orienation tensor A.
 %
 %HS = DRAWPSI(F) returns a handle to the surf object of the sphere.
 

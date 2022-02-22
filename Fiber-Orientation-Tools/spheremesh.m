@@ -1,11 +1,11 @@
 function [p,tricon, varargout] = spheremesh(nseg, varargin)
 %[P TRICON] = SPHEREMESH(NSEG) generates a triangular mesh on 
-%   the unit sphere by refining an initial polyhedral mesh of triangles. Each edge of
-%   the initial polyhedron is divided into NSEG segments, and a mesh of
-%   NSEG^2 triangular elements is generated on each initial triangle. P (3
-%   x numnod) returns the nodal coordinates and TRICON (numel x 3) returns
-%   the node numbers for each element.  The default initial shape is an
-%   octahedron.  
+%   the unit sphere by refining an initial polyhedral mesh of triangles.
+%   Each edge of the initial polyhedron is divided into NSEG segments, and
+%   a mesh of NSEG^2 triangular elements is generated on each initial
+%   triangle. P (3 x numnod) returns the nodal coordinates and TRICON
+%   (numel x 3) returns the node numbers for each element.  The default
+%   initial shape is an octahedron.
 %
 %   The default mapping for the octahedron is an equal-area mapping (A.
 %   Holhos and D. Rosca, Computers and Math with Applications, 67 (2014)

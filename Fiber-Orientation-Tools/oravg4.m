@@ -11,9 +11,8 @@ function Cavg = oravg4(C, A4, varargin)
 %
 %     A4 should have the normalization property of the exact 4th-order 
 %     tensor, A_ijkk = A_ij.  This is not true for a few closure
-%     approximations, in which case use
-%     CAVG = ORAVG(C, A4, A2) where A2 is the second-order orientation
-%     tensor in 3x3 matrix form.  
+%     approximations, in which case use CAVG = ORAVG(C, A4, A2) where A2 is
+%     the second-order orientation tensor in 3x3 matrix form.
 %
 
 %     Reference for symmetric C tensors: S.G. Advani and C.L. Tucker, 

@@ -4,41 +4,42 @@ function [t, Av, varargout] = solvePsi3D(L, CI, xi, tEnd, dtIn, ...
 %    the 3-D orientation distribution function PSI(THETA, PHI) at times
 %    0:DTIN:TEND, for velocity gradient L, interaction coefficient CI, and
 %    particle shape factor XI. L must be 3x3.  The initial condition
-%    is isotropic, unless otherwise specified via VARGIN (see below).
+%    is isotropic, unless otherwise specified via VARARGIN (see below).
 %    The solution is calculated on grid of NTHETA by NPHI cells covering a
 %    hemisphere. CO is the maximum Courant number, and may be used to
 %    determine a time sub-step.  CO <= 1 is normal.  The method is finite
 %    differences and the time integration is fully implicit.
-%    T is a vector of the solution times, and AV(J,K) contains the Kth
+%    T is a vector of the solution times, and AV(K,J) contains the Kth
 %    component of the second-order orientation tensor in contracted form
 %    for time T(J).  
 %
 %    If TEND <= 0 then a single steady-state result is returned and DTIN is
 %    ignored.
 %
-%[T, AV, A4V, PSI, THETA, PHI, PX, PY, PZ, NSUB] = SOLVEPSI2D(... also 
-%    returns the distribution function PSI at each time in T, at cell
-%    centroid locations THETA and PHI.  THETA and PHI are NTHETA x NPHI
-%    arrays.  PSI(:,J) is the solution at time T(J), and RESHAPE(PSI(:,J),
-%    NTHETA, NPHI) will produce an array that matches THETA and PHI. PX, PY
-%    and PZ are the Cartesian components of the orientation vector at each
-%    cell centroid, and are useful for SURF plots of PSI. NSUB is the
-%    number of time sub-steps used for each DTIN step in the output.
+%[T, AV, A4V, PSI, THETA, PHI] = SOLVEPSI3D(...) also 
+%    returns the fourth-order tensor in A4V and the distribution function
+%    PSI at each time in T.  A4V(M,J) contains the Mth component of A4 in
+%    vector form, arranged as in TENS2VEC4, at time T(J).  PSI(:,J) gives
+%    the solution at time T(J) at cell centroid locations THETA and PHI.
+%    THETA and PHI are NTHETA x NPHI arrays.  RESHAPE(PSI(:,J), NTHETA,
+%    NPHI) produces an array that matches THETA and PHI. 
 %
-%[T, PSI, PHI] = SOLVEPSI2D(L, ..., CO, SCHEME) controls the finite
+%[T, AV, A4V, PSI, THETA, PHI, PX, PY, PZ, NSUB] = SOLVEPSI3D(...) also 
+%    returns, PX, PY and PZ, the Cartesian components of the orientation
+%    vector at each cell centroid.  These are useful for SURF plots of PSI.
+%    NSUB is the number of time sub-steps used for each DTIN step in the
+%    output.  Items may be omitted from the end of the output list.
+%
+%[T, AV] = SOLVEPSI3D(L, ..., CO, SCHEME) controls the finite
 %    difference scheme.  Options for SCHEME are 'central' (central
 %    differencing, the default), 'upwind' (first-order upwind differencing;
 %    not recommended), and 'power' (power-law upwinding; useful for low-CI
 %    solutions on relatively coarse grids).  
 %
-%[T, PSI, PHI] = SOLVEPSI2D(L, ..., CO, SCHEME, PSIZERO) uses PSIZERO as 
+%[T, AV] = SOLVEPSI3D(L, ..., CO, SCHEME, PSIZERO) uses PSIZERO as 
 %    the initial condition.  PSIZERO must be a vector of length
-%    NTHETA*NPHI.
+%    NTHETA x NPHI.  
 
-%  -- Development note:
-%[T, AV, A4V] = SOLVEPSI2D(... also returns the fourth-order orientation 
-%    tensor components at each time step.  *** NOT IMPLEMENTED YET. NEED
-%    TO FIGURE OUT HOW TO STORE A4V. ***
 
 %%
 % --- Parse input arguments and set default values
@@ -57,6 +58,11 @@ end
 % --- Set up grid geometry
 %     The solution space is the hemisphere 0 <= theta <= pi, 
 %     0 <= phi <= pi, since the solution is periodic.
+%     The grid directions are defined as on a globe:
+%       north is the direction of decreasing theta,
+%       south is the direction in increasing theta;
+%       east  is the direction of decreasing phi;
+%       west  is the direction of increasing phi.
 
 % Angle increments
 dtheta = pi/ntheta;
@@ -85,8 +91,8 @@ dphi   = pi/nphi;
 % Here we use the exact result.
 Acell = dphi * (cos(thetaNS(1:end-1,1)) - cos(thetaNS(2:end,1)));
 
-% p-vector components at cell centroids.  px(i,j) is the x components of p
-% for cell (i,j).
+% p-vector components at cell centroids.  px(i,j) contains the x components
+% of p for cell (i,j).
 px = cos(phi).*sin(theta);
 py = sin(phi).*sin(theta);
 pz =           cos(theta);
@@ -272,8 +278,8 @@ K = sparse(krow, kcol, kval, nnod, nnod);
 
 %% --- Main solution
 % Storage for the results. 
-% Psi for each time step is a column vector, indexed by k = i +
-% (j-1)*ntheta.
+% Psi for each time step is a column vector, 
+% indexed by k = i + (j-1)*ntheta.
 % psiGrid = reshape(psi(:,n), ntheta, nphi) will give psi in an (i,j) grid.
 psi  = zeros(nnod, nsteps+1);
 
@@ -299,31 +305,51 @@ for n = 1:nsteps
     psi(:,n+1) = psiTmp;
 end
 
-%% Calculate the second-order orientation tensor components at each time.
+%% Calculate the orientation tensor components at each time.
 % Av(m,n) will be the mth contracted component of the second-order orientation
 % tensor at time step n.  Av is 6 x nsteps+1.  
+% A4v(m,n) will be the mth component of the fourth-order tensor at time
+% step n.  The order of components matches tens2vec4.
 % Set up a matrix ppA that has products of p components and cell areas,
 % such that multiplying ppA * psi will give Av.
+% ppA4 is the corresponding matrix for A4v.
 px = reshape(px, nnod, 1);  % Arrange p components as column vectors
 py = reshape(py, nnod, 1);
 pz = reshape(pz, nnod, 1);
 Aall = repmat(Acell, nphi, 1); % Aall has cell areas for every cell
 ppA = [px.*px.*Aall, py.*py.*Aall, pz.*pz.*Aall, ...
        py.*pz.*Aall, pz.*px.*Aall, px.*py.*Aall]';  % Note the transpose
+ppA4 = [px.*px.*px.*px.*Aall, ...
+        py.*py.*py.*py.*Aall, ...
+        pz.*pz.*pz.*pz.*Aall, ...
+        py.*py.*pz.*pz.*Aall, ...
+        pz.*pz.*px.*px.*Aall, ...
+        px.*px.*py.*py.*Aall, ...
+        px.*px.*py.*pz.*Aall, ...
+        px.*px.*pz.*px.*Aall, ...
+        px.*px.*px.*py.*Aall, ...
+        py.*py.*py.*pz.*Aall, ...
+        py.*py.*pz.*px.*Aall, ...
+        py.*py.*px.*py.*Aall, ...
+        pz.*pz.*py.*pz.*Aall, ...
+        pz.*pz.*pz.*px.*Aall, ...
+        pz.*pz.*px.*py.*Aall]';
 % Now the tensor calculation is easy.  The factor of 2 appears because 
-% the solution grid only covers half of the unit sphere.
-Av = 2 * ppA * psi;
+% the solution grid only covers half the unit sphere.
+Av  = 2 * ppA  * psi;
+A4v = 2 * ppA4 * psi;
         
 if strcmp(calcType, 'steady')
     % Return only the final time step
     psi = psi(:,end);
     Av  = Av(:,end);
+    A4v = A4v(:,end);
 end
 
 %% --- Provide any optional output arguments
 if nargout >= 3
     % Fourth-order orientation tensor
-    varargout{1} = 'A4v not implemented yet';
+    varargout{1} = A4v;
 end
 
 if nargout >= 4
@@ -357,7 +383,7 @@ if nargout >= 9
 end
 
 if nargout >= 10
-    % Detailed distribution function results
+    % Number of sub-steps for each main time step
     varargout{8} = nsub;
 end
 

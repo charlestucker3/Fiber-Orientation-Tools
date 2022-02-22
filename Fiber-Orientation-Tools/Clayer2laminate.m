@@ -1,16 +1,16 @@
 function [A, B, D, varargout] = Clayer2laminate(Clayer, z)
 %[A, B, D] = Clayer2laminate(Clayer, Z) computes the laminate
-%    stiffness matrices A, B and D (all 3x3) for a N-layer laminate where the 3-D
-%    stiffness tensor of the Ith layer is contained in Clayer(:,:,I) and
-%    layer I runs from Z(I) to Z(I+1), with Z=0 on the midplane.
-%    The coordinate system for CLAYER must have Z as the thickness
-%    direction of the laminate.  
+%    stiffness matrices A, B and D (all 3x3) for a N-layer laminate where
+%    the 3-D stiffness tensor of the Ith layer is contained in
+%    Clayer(:,:,I) and layer I runs from Z(I) to Z(I+1), with Z=0 on the
+%    midplane. The coordinate system for CLAYER must have Z as the
+%    thickness direction of the laminate.
 %
 %    Classical Kirchoff-Love laminated plate theory is used.
 %
 %[A, B, D, ETENSILE, EFLEX] = Clayer2laminate(Clayer, Z) also returns the
 %    tensile and flexural moduli, with ETENSILE(1) and EFLEX(1) being the
-%    X-direction properties and ETENSILE(2) and EFLEX(2) in properties in
+%    X-direction properties and ETENSILE(2) and EFLEX(2)the properties in
 %    the Y direction.
 %
 
@@ -20,7 +20,7 @@ H = z(end) - z(1);
 % Check that z = 0 on the midplane
 tiny = 1e-9;
 if abs(z(1)+H/2) > tiny || abs(z(end)-H/2) > tiny
-    error('z values must increase from -H/2 to H/2')
+    error('z values must range from -H/2 to H/2')
 end
 
 % Number of layers

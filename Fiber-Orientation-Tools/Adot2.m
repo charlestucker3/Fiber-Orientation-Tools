@@ -1,12 +1,10 @@
-function Aderiv = Adot2(Av, L, xi, closure, ...
-         diffModel, varargin)
-%ADERIV = ADOT2(AV, L, XI, CLOSURE, ...
-%              DIFFMODEL, DIFFPARAM, KINMODEL, KINPARAM)
-%     returns the time derivative ADERIV of the fiber orientation tensor
-%     for a given velocity gradient tensor L (3x3) and particle shape 
-%     factor XI, using the closure approximation specified by CLOSURE.  
-%     DIFFMODEL and DIFFPARAM specify the model and parameters for the
-%     rotary diffusion model.   
+function Aderiv = Adot2(Av, L, xi, closure, diffModel, varargin)
+%ADERIV = ADOT2(AV, L, XI, CLOSURE, DIFFMODEL, DIFFPARAM) returns the 
+%     time derivative ADERIV of the fiber orientation tensor for a given
+%     velocity gradient tensor L (3x3) and particle shape factor XI, using
+%     the closure approximation specified by CLOSURE. DIFFMODEL and
+%     DIFFPARAM specify the model and parameters for the rotary diffusion
+%     model (see below).  
 %
 %ADERIV = ADOT2(AV, L, XI, CLOSURE, ...
 %              DIFFMODEL, DIFFPARAM, KINMODEL, KINPARAM)
@@ -71,12 +69,7 @@ gammadot = sqrt(2*trace(D*D));    % scalar strain rate
 
 % Find sorted eigenvalues and eigenvectors of A.  Not used for every model,
 % so this could be made conditional on the model for efficiency.
-[Evecs, Aprin] = eig(A);                 % eigenvectors/values of A2
-[Evals, sortOrder] = sort(diag(Aprin));  % sort eigenvalues in ascending order
-Evals = flipud(Evals);                   % change to decreasing order
-R = [Evecs(:,sortOrder(3)), Evecs(:,sortOrder(2)), Evecs(:,sortOrder(1))];
-                                         % sorted eigenvectors form the 
-                                         % rotation matrix
+[Evals, R] = eigsort(A);
                                          
 % Quantities dependent on the rotary diffusion model: effective values of
 % CI, D, and the target orientation tensor Ahat for rotary diffusion.
@@ -141,32 +134,8 @@ switch upper(kinModel)  % Set kappa for use in dAdt eqn., and
         L4 = diag([Evals(1) Evals(2) Evals(3) 0 0 0], 0);
         M4 = diag([1 1 1 0 0 0], 0);
         % Then rotate back to laboratory axes
-        %  6x6 rotation matrices and associated quantities
-        Qa=[R(1,1)*R(1,1), R(1,2)*R(1,2), R(1,3)*R(1,3), ...
-            R(1,2)*R(1,3), R(1,3)*R(1,1), R(1,1)*R(1,2);
-            R(2,1)*R(2,1), R(2,2)*R(2,2), R(2,3)*R(2,3), ...
-            R(2,2)*R(2,3), R(2,3)*R(2,1), R(2,1)*R(2,2);
-            R(3,1)*R(3,1), R(3,2)*R(3,2), R(3,3)*R(3,3), ...
-            R(3,2)*R(3,3), R(3,3)*R(3,1), R(3,1)*R(3,2);
-            R(2,1)*R(3,1), R(2,2)*R(3,2), R(2,3)*R(3,3), ...
-            R(2,2)*R(3,3), R(2,3)*R(3,1), R(2,1)*R(3,2);
-            R(3,1)*R(1,1), R(3,2)*R(1,2), R(3,3)*R(1,3), ...
-            R(3,2)*R(1,3), R(3,3)*R(1,1), R(3,1)*R(1,2);
-            R(1,1)*R(2,1), R(1,2)*R(2,2), R(1,3)*R(2,3), ...
-            R(1,2)*R(2,3), R(1,3)*R(2,1), R(1,1)*R(2,2)];
-        
-        Qb=[0, 0, 0, R(1,3)*R(1,2), R(1,1)*R(1,3), R(1,2)*R(1,1);
-            0, 0, 0, R(2,3)*R(2,2), R(2,1)*R(2,3), R(2,2)*R(2,1);
-            0, 0, 0, R(3,3)*R(3,2), R(3,1)*R(3,3), R(3,2)*R(3,1);
-            0, 0, 0, R(2,3)*R(3,2), R(2,1)*R(3,3), R(2,2)*R(3,1);
-            0, 0, 0, R(3,3)*R(1,2), R(3,1)*R(1,3), R(3,2)*R(1,1);
-            0, 0, 0, R(1,3)*R(2,2), R(1,1)*R(2,3), R(1,2)*R(2,1)];
-        
-        Q  = Qa+Qb;      % Rotation matrix for symmetric 4th-order tensors
-        Qinv = Q\eye(6); % Matrix inverse of Q
-        
-        L4 = Q*L4*R4*Qinv*Id4;  % L4 in lab coords.
-        M4 = Q*M4*R4*Qinv*Id4;  % M4 in lab coords.
+        L4 = rotate4(L4, R);   
+        M4 = rotate4(M4, R);   
         
         % We can now modify A4 and Ahat for the RSC model
         A4 = A4 + (1-kappa) * (L4 - M4*R4*A4); 

@@ -1,0 +1,259 @@
+\documentclass[11pt]{article}
+\usepackage{fullpage}
+\usepackage{amsmath, amssymb}
+
+\title{An Overview of \\
+      \textbf{Fiber Orientation Tools} \\
+      { \normalsize \texttt{http://github.com/charlestucker3/Fiber-Orientation-Tools}} }
+
+\author{Charles L.~Tucker III \\
+       Department of Mechanical Science and Engineering \\
+        University of Illinois at Urbana-Champaign \\
+        1206 W.~Green St. \\
+        Urbana, IL 61801 \\
+        }
+\include{defs}  % Macro definitions
+
+\begin{document}
+\maketitle
+
+This document summarizes \textbf{Fiber Orientation Tools}, a set of \matlab\ functions for modeling flow-induced fiber orientation in discontinuous fiber composites, and for predicting the resulting mechanical properties.  
+
+The tools accompany the book \textit{Fundamentals of Fiber Orientation: Description, Measurement and Prediction} by C. L. Tucker III (Hanser, Munich, 2022), and references to sections, figures and equations indicate items in the book.  
+
+ \matlab\ live scripts that demonstrate the use of various tools are described first, followed by a list of the functions in the toolkit, organized by category.  To see the details of any function, type \texttt{help} followed by the function name in the \matlab\ command window.
+
+
+
+\section{Live Scripts with Example Calculations}
+
+The live scripts are arranged here according to the chapters of the book.  
+
+\subsection*{Chapter 2.  Describing Fiber Orientation and Length}
+
+\begin{description}
+    
+    \item[OrientationDistributionFunctions.mlx]{creates 3-D orientation distribution functions $\psi(\pv)$ using the Jeffery distribution function, as in Fig.~2.5.  Uses \texttt{A2F} and \texttt{drawPsi}.}
+    
+    \item[OrientationTensorExamples.mlx]{calculates orientation tensors for various combinations of $\pv$ vectors.  Uses \texttt{p2A} and follows the examples in Sections~2.3.1 and 2.3.5.}
+
+    \item[EigenvaluesEigenvectors.mlx]{finds eigenvalues and eigenvectors of a second-order orientation tensor, and compares the standard \matlab\ function \texttt{eig} with the \texttt{eigsort} function from this toolkit.}
+    
+    \item[ReconstructDiscreteDistributionFcn.mlx]{shows how to find a set of orientation vectors $\pv^i$ and weighting factors $f_i$ to form a discrete approximation of an orientation distribution function, using the Jeffery distribution function, Eqn.~(2.103).  Uses \texttt{A2F} and \texttt{matchA}.  See also \textbf{A2Faccuracy.mlx}, below.  }
+
+        \item[A2Faccuracy.mlx]{explains how to control the accuracy of \texttt{A2F}, which finds the deformation gradient tensor $\F$ that will transform an initially isotropic orientation state to a given second-order tensor $\A$, using the deformation form of Jeffery's equation.  \texttt{F2A} does the reverse calculation.}    
+        
+\end{description}
+
+\subsection*{Chapter 3.  Measuring Fiber Orientation and Length}
+
+\begin{description}
+    
+    \item[PlanarSectionMeasurement.mlx]{uses \texttt{thetaphi2A} to compute orientation information for data from a planar section.  Follows Example~3.1.1.}
+      
+\end{description}
+
+\subsection*{Chapter 4. Flow Orientation of Single Fibers}
+
+\begin{description}
+
+    \item[JefferyFiber.Motionmlx]{calculates the motion of a single fiber following Jeffery's equation using \texttt{pDot} and \texttt{ode45} (Section~4.2.3).  Illustrates Jeffery orbits, as in Fig.~4.14.}
+
+    \item[JefferyDeformationForm.mlx]{illustrates the use of \texttt{changep}, which implements the deformation form of Jeffery's equation.  Also uses \texttt{randomfibers} to generate a set of $\pv$ vectors that are randomly distributed in all directions, and \texttt{p2A} to see the initial and final orientation tensors.}
+        
+\end{description}
+
+
+\subsection*{Chapter 5. Flow Orientation of Groups of Fibers} 
+
+\begin{description}    
+
+        \item[JefferyTensorEqn.mlx]{illustrates the numerical solution of the orientation tensor equation when every fiber follows Jeffery's equation.  This is the example from Section 5.1.2 and it uses \texttt{AdotJeffQuad}.}    
+
+        \item[SolvePlanarDistnFcn.mlx]{shows how to use \texttt{solvePsi2D} to solve for the planar orientation distribution function $\psi_\phi (\phi, t)$.  See Sections~5.2.1 and 5.3.1.  This script produces Fig.~5.5(a), and illustrates the control of `wiggles' in the finite difference solution using power-law upwinding and/or grid refinement.}    
+
+        \item[Solve3DdistnFcn.mlx]{shows how to use \texttt{solvePsi3D} to solve for the 3-D orientation distribution function $\psi (\pv, t)$.  See Sections~5.2.2 and 5.3.2.  This script produces the tensor history in Fig.~5.7, and shows how to display distribution functions as in Fig. 5.6.  This script also shows how to calculate $\psi(\pv, t)$ for anisotropic rotary diffusion models, using \texttt{solvePsiARD} (Section~ 5.6).  }    
+
+        \item[OrientationTensorEqns.mlx]{uses \texttt{Adot2} together with \texttt{ode45} to solve the different tensor equations to model fiber orientation.  The script shows solutions to the Folgar-Tucker equation (Sections~5.3 and 5.4), anisotropic rotary diffusion (ARD) models (Section~5.6), and slow kinetics models (Section~5.7).}    
+ 
+        \item[FitCI.mlx]{illustrates the use of \texttt{fitCI} to find the interaction coefficient $C_I$ from the Folgar-Tucker model that produces a given value of $A_{11}$ in steady-state simple shear flow.  Also shows that the choice of closure approximation affects the value of $C_I$.}   
+ 
+        \item[FitARDparams.mlx]{uses \texttt{fitARD} to obtain the ARD parameters that give desired steady-state values of $A_{11}$ and $A_{33}$ in simple shear flow.  Also demonstrates that the steady-state orientation for a given ARD model is independent of the kinetic parameter $\kappa$ when the RSC or RPR models are also used.}   
+        
+\end{description}
+
+\subsection*{Chapter 6. Suspension Rheology and Flow-Orientation Coupling}
+
+\begin{description}
+
+    \item[FiberSuspensionStress.mlx]{demonstrates the use of \texttt{tauFiber} to find the orientation-dependent stress in a fiber suspension.  Shows how to do the calculations used to generate Fig.~6.4.}
+    
+\end{description}
+
+\subsection*{Chapter 7. Fiber Length Degradation during Processing}
+
+\begin{description}
+
+    \item[FiberLengthModel.mlx]{explains the dimensionless version of the Phelps-Tucker fiber length model as implemented in \texttt{solveFLDstar}, and shows how to set up the calculation for the example in Fig. 7.4.}
+
+\end{description}
+
+\subsection*{Chapter 8. Mechanical Properties and Orientation}
+
+\begin{description}
+
+    \item[UnidirectionalProperties.mlx]{shows how to calculate the stiffness and thermal expansion of composites with unidirectional fiber orientation.  The main functions for this are \texttt{mori} for the Mori-Tanaka model, \texttt{lielens} for the Lienlens/double-inclusion model, and \texttt{halpin} for the Halpin-Tsai model.  The functions \texttt{iso2C}, \texttt{C2eng} and \texttt{inv4} are also used.}
+    
+    \item[OrientationAveragedProperties.mlx]{applies orientation averaging to find the properties of a composite with a distribution of fiber orientation.  Both stiffness and thermal expansion are considered.  The main functions are \texttt{oravg4} and \texttt{oravg2}.  The script reproduces Fig.~8.5(a) showing elastic modulus vs.\ orientation, and creates a plot of thermal expansion vs.\ orientation similar to Fig.~8.8(a).}
+        
+    \item[LaminatedPlaneProperties.mlx]{uses classical lamination theory, as implemented in \texttt{Clayer2laminate}, to find the tensile and flexural moduli of an injection molded composite whose orientation varies across the thickness.  Partial results from Table~8.4 are reproduced.  A summary of the underlying theory is given in \textbf{LaminationTheory.pdf} in the documentation folder.}
+\end{description}
+
+\section{Functions Listed by Category}
+
+\subsection{Operations on Orientation Tensors}
+
+\begin{description}
+
+    \item[eigsort]{returns the eigenvalues and eigenvectors of a tensor, sorted from largest eigenvalue to smallest.}
+
+    \item[inv4]{finds the tensor inverse of a fourth-order tensor.}
+
+    \item[p2A]{converts a set of $\pv$ vectors to second-order and fourth-order orientation tensors, with or without weighting factors.}
+
+    \item[rotate4]{coordinate transformation for a fourth-order tensor.  See Section~A.4.5.}
+
+    \item[tens2vec]{converts a symmetric second-order tensor from $3 \times 3$ matrix form to $6 \times 1$ column vector (contracted) form.  See Section~2.3.5.1.}
+
+    \item[tens2vec4]{converts a symmetric fourth-order tensor from $6 \times 6$ matrix form to $15 \times 1$ column vector form.  This is not discussed in the book, but is used here by \texttt{matchA}.}
+
+    \item[thetaphi2A]{returns the second-order orientation tensor corresponding to a set of angles $(\theta, \phi)$ measured from planar section data (Section~3.1.1).  Either the Bay or Konicek weighting functions can be used.}
+
+    \item[transisoA]{returns the full second-order orientation tensor $\A$ and fourth-order orientation tensor $\Afour$ for a transversely isotropic orientation state with given values of $A_{11}$ and $\Afour_{1111}$.}
+
+    \item[vec2tens]{converts a symmetric second-order tensor from $6 \times 1$ column vector form to $3 \times 3$ matrix form.  See Section~2.3.5.1.}
+
+    \item[vec2tens4]{converts a symmetric fourth-order tensor from $15 \times 1$ column vector form to $6 \times 6$ matrix form.  This is not discussed in the book but is the converse of \texttt{tens2vec4}.}
+    
+\end{description}
+
+\subsection{Flow-Induced Orientation Models}
+
+\begin{description}
+
+    \item[Adot2]{gives the time derivative $\dot{\A}$ as a function of $\A$, $\mathbf{L}$ and orientation model parameters, for a wide range of orientation models.  This is the principal tool used to predict flow-induced orientation.}
+    
+    \item[AdotJeffQuad]{gives the time derivative $\dot{\A}$ for the Jeffery model using the quadratic closure.  Used in Section~5.1.2 and Fig.~5.1.}
+    
+    \item[Asteady]{finds the steady-state orientation tensor $\A$ for any given $\mathbf{L}$ and any model in \texttt{Adot2}.}
+    
+    \item[changep]{finds a set of current orientation vectors $\pv$ using the deformation form of Jeffery's equation, for a given set of initial vectors $\pv'$ and deformation gradient tensor $\F$.}
+    
+    \item[closeA4]{uses any of several closure approximations to find the fourth-order orientation tensor $\Afour$ corresponding to a second-order tensor $\A$.  See Section~ 5.4.}  
+    
+    \item[fitARD]{finds the anisotropic rotary diffusion (ARD) model parameters that achieve given steady-state values of $A_{11}$ and $A_{33}$ in 1--3 simple shear flow.}  
+    
+    \item[fitCI]{finds the interaction coefficient $C_I$ for the Folgar-Tucker model that achieves a given steady-state value of $A_{11}$ in simple shear flow.}
+    
+    \item[pDot]{gives the time derivative $\dot{ \pv}$ of an orientation vector $\pv$ using Jeffery's equation.  See Section~4.2.3.}
+    
+    \item[solvePsi2D]{solves for the orientation distribution function $\psi_\phi ( \phi, t)$ for the 2-D version of the Folgar-Tucker model.  See Sections~5.2.1 and 5.3.21}
+    
+    \item[solvePsi3D]{solves for the orientation distribution function $\psi( \theta, \phi, t)$ for the 3-D version of the Folgar-Tucker model.  See Sections~5.2.2 and 5.3.2.}
+    
+    \item[solvePsiARD]{solves for the orientation distribution function $\psi( \theta, \phi, t)$ for 3-D anisotropic rotary diffusion models.  See Section~5.6.}
+    
+    \item[tauFiber]{finds the extra-stress tensor $\btau$ for a fiber suspension, for a given orientation tensor $\A$ and rate of deformation $\D$, Eqn.~(6.29).}
+    
+\end{description}
+
+\subsection{Fiber Length Prediction}
+
+\begin{description}
+
+    \item[fldRstar]{returns a matrix $[R^*]$ used in the non-dimensional version of the Phelps-Tucker fiber length model.  This function is not used directly, but is required by \texttt{solveFLDstar}.}
+    
+    \item[solveFLDstar]{solves a non-dimensional version of the Phelps-Tucker fiber length model.}
+    
+\end{description}
+
+\subsection{Mechanical Property Prediction}
+
+\begin{description}
+
+    \item[C2eng]{finds the engineering constants for a given stiffness tensor $\Cfour$.}
+
+    \item[Clayer2laminate]{finds the laminate stiffness matrices $[A]$, $[B]$ and $[D]$ for a laminate, given the stiffness tensor $\Cfour$ for each layer and the layer thicknesses.  This is used to compute the tensile and bending properties of a composite where the orientation varies across the thickness; see Section~8.4.5.}
+    
+    \item[diluteEshelby]{finds the stiffness tensor $\Cfour$ for a dilute composite with unidirectional alignment using Eshelby's equivalent inclusion.  This model is primarily of theoretical interest, and it is used in Fig.~8.3.}    
+    
+    \item[eng2C]{converts the engineering constants for an orthotropic material into a stiffness tensor $\Cfour$.}    
+    
+    \item[eshtens]{returns the Eshelby tensor $\Efour$ for a spheroidal particle in an isotropic matrix.  The particle can be prolate (fiber-like), spherical, or oblate (disk-like).}
+    
+    \item[halpin]{finds the engineering constants and the stiffness tensor $\Cfour$ for a discontinuous fiber composite with unidirectional fibers using the Halpin-Tsai equations.}    
+    
+    \item[iso2C]{finds the stiffness tensor $\Cfour$ for an isotropic material with Young's modulus $E$ and Poisson ratio $\nu$.}    
+    
+    \item[lielens]{returns the stiffness tensor $\Cfour$ and thermal stress tensor $\bbeta$ for a unidirectional composite using the Lielens/double-inclusion model.}    
+    
+    \item[mori]{returns the stiffness tensor $\Cfour$ and thermal stress tensor $\bbeta$ for a unidirectional composite using the Mori-Tanaka model.}   
+    
+    \item[oravg2]{computes the orientation average of a transversely isotropic second-order tensor, Eqn.~(8.81).}   
+    
+    \item[oravg4]{computes the orientation average of a transversely isotropic fourth-order tensor, Eqn.~(8.77).}   
+    
+\end{description}
+
+\subsection{Reconstruction of Orientation Distribution Functions}
+
+\begin{description}
+
+    \item[A2F]{find the orientation tensor $\A$ for any deformation gradient tensor $\F$ using the deformation form of Jeffery's equation.}
+    
+    \item[drawPsi]{draws a sphere colored by the Jeffery orientation distribution function for a given deformation gradient tensor $\F$.}
+    
+    \item[F2A]{returns the orientation tensor $\A$ for a given deformation gradient tensor $\F$ using Jeffery's model.}
+    
+    \item[matchA,]{given a set of orientation vectors $\pv^i$ and weights $f^i$, adjusts the weights to exactly match a given second-order or fourth-order orientation tensor, while minimizing the mean square difference between the original and adjusted weights.  WARNING: This function can return negative values for some weights, usually when the orientation state is highly aligned.  See \texttt{RecontructingDiscreteDistributionFcn.mlx} for examples.}    
+    
+\end{description}
+
+\subsection{Graphics and Utility Functions}
+
+\begin{description}
+
+    \item[fill3elt]{draws a triangular mesh in three dimensions, colored according to element values.}
+
+    \item[fill3mesh]{draws a triangular mesh in three dimensions, colored according to nodal values.}
+
+    \item[meshcon]{builds the edge connectivity information for a triangular mesh, as needed by \texttt{refinemesh}.}
+
+    \item[p2sph]{converts a set of $\pv$ vectors to the angles $(\theta, \phi)$ in a spherical coordinate system.}
+
+    \item[plot3mesh]{draws the elements of a triangular mesh in three dimensions.}
+
+    \item[plot3nodes]{draws the nodes of a mesh in three dimensions.}
+    
+    \item[randomfibers]{generates a set of fiber orientation vectors $\pv$, randomly oriented in three dimensions.}
+
+    \item[refinemesh]{refines a triangular mesh by dividing each initial element into $n^2$ smaller ones.}
+
+    \item[sph2p]{converts a set angles $(\theta, \phi)$ in a spherical coordinate system into unit vectors $\pv$.}
+
+    \item[spheremesh]{generates different types of triangular meshes on a unit sphere, or on half of a sphere.}
+
+    \item[sphTriArea]{finds the area of each triangle in a mesh on the unit sphere.  Treats each element as a spherical triangle, rather than a planar triangle.}
+
+    \item[surfPsi3D]{colors the surface of a unit sphere according to an orientation distribution function $\psi (\pv)$.  This function is designed to display distribution functions calculated by \texttt{solvePsi3D} and \texttt{solvePsiARD}.}
+
+    \item[weightFrac2volFrac]{converts fiber weight fraction to fiber volume fraction for a two-phase composite.}
+    
+    
+\end{description}
+
+
+
+
+
+\end{document}

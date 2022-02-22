@@ -3,14 +3,17 @@ function [Av, varargout]  = Asteady(Av, L, xi, closure, ...
 %AV = ASTEADY(AV, L, XI, CLOSURE, DIFFMODEL, DIFFPARAM) finds the
 %      steady-state orientation tensor Av (6x1 vector form) corresponding
 %      to the velocity gradient L (3x1), particle shape factor XI, closure
-%      approximation CLOSURE, diffusion model DIFFMODEL with parameter(s)
-%      DIFFPARAM.  AV on input is an initial guess at the steady
-%      orientation state.  The method is Newton-Raphson, so a reasonable
-%      initial guess may be needed for the function to converge.
+%      approximation CLOSURE, and diffusion model DIFFMODEL with
+%      parameter(s) DIFFPARAM.  AV on input is an initial guess at the
+%      steady orientation state.  The method is Newton-Raphson, so a
+%      reasonable initial guess may be needed for the function to converge.
 %
 %AV = ASTEADY(AV, L, XI, CLOSURE, DIFFMODEL, DIFFPARAM, KINMODEL, KINPARAM)
 %      uses the orientation kinetics model KINMODEL with parameter
 %      KINPARAM.  If these arguments are absent, Jeffery kinetics are used.
+%      The steady-state solution is actually independent of the kinetic
+%      model and its parameters, so this option mainly serves to confirm
+%      that numerically.  
 %
 %[AV, STABLE] = ASTEADY(AV, L, XI, CLOSURE, DIFFMODEL, DIFFPARAM) also
 %      returns information about the stability of the solution. STABLE = 1
@@ -23,10 +26,10 @@ function [Av, varargout]  = Asteady(Av, L, xi, closure, ...
 
 
 % Solution tolerances
-maxiter = 20;    % Max iterations for Newton-Raphson
+maxiter = 150;    % Max iterations for Newton-Raphson
 errTol = 1e-12;  % Tolerance on dAdt = 0.
 
-% Scale L, so that dA/dt values will be well scaled.
+% Scale L so that dA/dt values will be well scaled.
 L = L / max(max(abs(L)));
 
 % Set orientation kinetics model and parameters
@@ -77,7 +80,13 @@ while yerr > errTol && niter < maxiter
     
     % -- Update the x vector using Newton-Raphson 
     dx = -J\y;
+    % **** Try some relaxation, to help with tricky cases ***
+    if niter <= 50
+        x = x + 0.1*dx;
+    else
     x = x + dx;
+    end
+    % ***********************
     % --  Update Av
     Av = [x(1), 1-x(1)-x(2), x(2), x(3), x(4), x(5)]';
     % -- Update y and compute the new overall error
@@ -91,11 +100,9 @@ end  % Normally will iterate to convergence
 if niter == maxiter && yerr > errTol
     stable = -1;
     fprintf('WARNING: Asteady did not converge in %i iterations\n', niter)
-    fprintf('         yerr = %8.3e\n', yerr)
-    fprintf('diffParam = \n')
-    fprintf('   %10.4f\n', diffParam)
+    fprintf('         yerr = %8.2e  diffParam = %8.2e\n', yerr, diffParam)
 else
-    % Check the stability if tge solution.  This requires re-computing J,
+    % Check the stability if the solution.  This requires re-computing J,
     % since the iteration loop may have been skipped if the initial guess
     % was also the final answer.
     J = zeros(5,5);

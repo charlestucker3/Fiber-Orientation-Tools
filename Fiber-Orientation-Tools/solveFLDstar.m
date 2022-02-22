@@ -3,13 +3,22 @@ function [tout, N, Ln, Lw, varargout] = solveFLDstar(Nzero, Lstar, t, ...
 %[TOUT, N, LN, LW] = FLDSTAR(NZERO, LSTAR, T, S) solves the Phelps-Tucker 
 %     fiber length model in dimensionless form, for constant unbreakable
 %     fiber length Lub.  Usually this means constant matrix viscosity and
-%     shear rate.  Nzero is a column vector giving the initial condition
+%     shear rate.  Fiber lengths LSTAR are non-dimensionalized by Lub, and
+%     times T or TOUT are non-dimensionalized by CB*gamma-dot, where CB is
+%     the breakage coefficient and gamma-dot is the scalar shear rate.
+%
+%     Nzero is a column vector giving the initial condition
 %     for the number-based fiber length distribution and LSTAR is a vector
-%     giving the corresponding fiber lengths.  LSTAR(i) = i*Delta_L/Lub.  T
-%     is a vector of times at which the solution should be calculated, and
-%     S is the dimensionless parameter controlling the distribution of
+%     giving the corresponding fiber lengths.  LSTAR(i) = i*Delta_L/Lub.  
+%     T is a vector of times at which the solution should be calculated,
+%     and S is the dimensionless parameter controlling the distribution of
 %     child lengths for each parent fiber.  TOUT is a vector of actual
 %     solution times.
+%
+%     The function returns a matrix N, where N(I,J) is the number-based FLD
+%     for length LSTAR(I) at time TOUT(J).  N(:,1) equals the initial
+%     condition.  Also returned are vectors of the number-average and
+%     weight-average fiber length, LN and LW, at times TOUT.
 %
 %[TOUT, N, LN, LW] = FLDSTAR(NZERO, LSTAR, T, S, PMODEL) uses PMODEL for
 %     the breakage rate vs. fiber length model.  
@@ -19,12 +28,6 @@ function [tout, N, Ln, Lw, varargout] = solveFLDstar(Nzero, Lstar, t, ...
 %          'Durin'     The model of Durin et al., Composites A, v48, p47,
 %                      2013.  This allows some breakage for L < Lub, and
 %                      has full breakage for L > Lub.
-%
-%     The function returns a matrix N, where N(I,J) is the number-based FLD
-%     for length LSTAR(I) at time TOUT(J).  N(:,1) equals the initial
-%     condiiton.  Also returned are vectors of the number-average and
-%     weight-average fiber length, LN and LW, at times
-%     TOUT.  
 %
 %[TOUT, N, LN, LW, W] = FLDSTAR(NZERO, LSTAR, T, S) also returns a 
 %     normalized weight-based FLD at each time in the matrix W, which has
@@ -46,16 +49,16 @@ end
 % - First, find the scaled matrix, without breakage rates.
 Rhat = fldRstar(nlen, S);   % Dimensionless matrix w/o breakage rates
 
-% -- The breakage rates depens on the model used
+% -- The breakage rates depends on the model used
 switch lower(Pmodel)
     case 'phelps'
         P = 1 - exp(1 - Lstar.^4);  % Breakage rate, ...
         P(P<0) = 0;                 % ... but never less than zero
-    case 'durin'  % Eqns. 25a) and (25b) in Durin (2013).
+    case 'durin'  % Eqns. (25a) and (25b) in Durin (2013).
         P = (1-exp(-Lstar.^4)) / (1-exp(-1));
         P(P>1) = 1;
     otherwise
-        error('Illegal value of Pmodel.')
+        error('Illegal value of Pmodel')
 end
 P = reshape(P, 1, nlen);    % Make sure P is a row vector
 

@@ -52,7 +52,7 @@ B = inv4( (1-xi)*inv4(Blower) + xi*inv4(Bupper) );
 C = ( (1-vf)*Cm + vf*Cf*R4*B ) * R4 * inv4( (1-vf)*I4 + vf*B );
 
 if nargout >= 2
-    if nargin >= 6  % Compute the thermal expansion tensor of the composite
+    if nargin >= 6  % Compute the thermal stress tensor of the composite
         % Thermal expansion tensor for the fiber
         if length(varargin{1}) == 1 % alphaf is a scalar
             alphaf = varargin{1} * [1,1,1,0,0,0]';
@@ -64,18 +64,12 @@ if nargout >= 2
         % Thermal stress tensors for the fiber and matrix
         betaf = Cf * R4 * alphaf;
         betam = Cm * R4 * (varargin{2} * [1,1,1,0,0,0]');
-        % Thermal stress tensor for the composite.
-        % Reference: G. Lielens, P. Pirotte, A. Couniot, F. Dupret, and R.
-        % Keunings. Prediction of thermo-mechanical properties for
-        % compression-moulded composites. Composites A, 29:63–70, 1997,
-        % though this particular formula is my own.
-        beta = (1-vf)*betam + vf*betaf - ((1-vf)*Cm + vf*Cf - C) * R4 * ...
-                inv4(Cf - Cm) * R4 * (betaf - betam);
+        % Thermal stress tensor for the composite, Eqn. (8.89)
+        beta = (Cf - C) *R4* inv4(Cf - Cm) *R4* betam ...
+             + (Cm - C) *R4* inv4(Cm - Cf) *R4* betaf;
         varargout{1} = beta;
-        % Thermal expansion coefficient, 6x1 column vector form
-%       alpha = inv4(C) * R4 * beta;
     else
-        error('No enough input arguments to compute thermal expansion')
+        error('Not enough input arguments to compute thermal expansion')
     end
 end
 
