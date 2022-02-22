@@ -19,5 +19,3 @@ Included are functions to calculate:
 A number of smaller utility functions are also included.  Example scripts show how the functions are used in many common applications, and reproduce some of the figures and calculations from the book.   
 
 To use the tools, click the green **Code** button, and select **Download ZIP**.  Unzip the file and follow the installation suggestions in the _Documentation_ folder.  
-
-**NOTE**: As of January 18, 2022, the documentation is incomplete.  I will continue to fill this in over the next few months, and will issue a version of the archive when all the pieces are in place.  Thanks for your patience.  
