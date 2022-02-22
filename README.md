@@ -5,7 +5,7 @@ By Charles L. Tucker III, Department of Mechanical Science and Engineering, Univ
 This toolkit contains Matlab functions for modeling flow-induced fiber orientation and mechanical properties for discontinuous-fiber composite materials.  It was developed as a supplement to the book **_Fundamentals of Fiber Orientation: Description, Measurement and Prediction_** by C. L. Tucker, Hanser, Munich, 2022.  Errata for the book is available at https://github.com/charlestucker3/Fundamentals-of-Fiber-Orientation-errata.
 
 This software is distributed under an MIT license; see the LICENSE file for details.  It can be cited as:
-- C. L. Tucker, Fiber Orientation Tools, https://https://github.com/charlestucker3/Fiber-Orientation-Tools, v1.0.0, 2021.
+- C. L. Tucker, Fiber Orientation Tools, https://github.com/charlestucker3/Fiber-Orientation-Tools, v1.0.0, 2021.
 
 Included are functions to calculate:
 - Flow-induced fiber orientation using a variety of tensor-based models: Jeffrey, Folgar-Tucker or anisotropic rotary diffusion (Phelps-Tucker 5-constant, iARD, pARD, MRD and Wang/2-constant models), and slow kinetics (SRF, RSC and RPR).
