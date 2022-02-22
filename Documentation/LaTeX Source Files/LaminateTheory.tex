@@ -29,8 +29,8 @@ In the language of laminated composites, a \emph{laminate} is a plate-like struc
 
 Let the components of the displacement vector be $(u, v, w)$.  The components of the strain tensor follow from the usual definitions, e.g., Eqns.~(8.2) and (8.3):
 \begin{equation}
-   \epsilon_{xx} = \frac{\partial u}{\partial x}   \qquad  \qquad
-   \epsilon_{yy} = \frac{\partial v}{\partial y}   \qquad  \qquad
+   \varepsilon_{xx} = \frac{\partial u}{\partial x}   \qquad  \qquad
+   \varepsilon_{yy} = \frac{\partial v}{\partial y}   \qquad  \qquad
    \gamma_{xy} = \frac{\partial u}{\partial y} + \frac{\partial v}{\partial x} 
    \label{epsilonDef}
 \end{equation}
@@ -63,7 +63,7 @@ The next task is to find the stress-strain relationships for a lamina in plane s
      \Cfour_{61} &  \Cfour_{62} &  \Cfour_{63} &  \Cfour_{64} &  \Cfour_{65} &  \Cfour_{66} 
     \end{array} \right] 
         \left\{ \begin{array}{c}
-           \epsilon_{xx}  \\  \epsilon_{yy}  \\  \epsilon_{zz} \\  \gamma_{yz} \\ \gamma_{zx} \\  \gamma_{xy}
+           \varepsilon_{xx}  \\  \varepsilon_{yy}  \\  \varepsilon_{zz} \\  \gamma_{yz} \\ \gamma_{zx} \\  \gamma_{xy}
            \end{array} \right\}
      \label{stiffnessC}
  \end{equation}
@@ -71,7 +71,7 @@ The next task is to find the stress-strain relationships for a lamina in plane s
 The laminate is assumed to be thin relative to its in-plane dimensions, so each lamina is in a state of \emph{plane stress}:  $\sigma_{zz} = \sigma_{xz} = \sigma_{yz} = 0$.  We would like to specialize Eqn.~(\ref{stiffnessC}) for plane stress.  To do this, take the matrix inverse of $[ \Cfour ]$ to find $[ \tilde{\Sfour} ] = [ \Cfour ]^{-1}$.  In many books $[ \tilde{\Sfour} ]$  is called the compliance matrix.  This converts Eqn.~(\ref{stiffnessC}) to a strain-stress relationship:
 \begin{equation}
         \left\{ \begin{array}{c}
-           \epsilon_{xx}  \\  \epsilon_{yy}  \\  \epsilon_{zz} \\  \gamma_{yz} \\ \gamma_{zx} \\  \gamma_{xy}
+           \varepsilon_{xx}  \\  \varepsilon_{yy}  \\  \varepsilon_{zz} \\  \gamma_{yz} \\ \gamma_{zx} \\  \gamma_{xy}
            \end{array} \right\}
            =
               \left[ \begin{array}{cccccc}
@@ -87,10 +87,10 @@ The laminate is assumed to be thin relative to its in-plane dimensions, so each 
            \end{array} \right\}
      \label{3Dcompliance}
  \end{equation}
-Now we can write the in-plane strains as functions of the in-plane stresses by selecting the first, second, and third lines of Eqn.~(\ref{3Dcompliance}) and setting $\sigma_{zz}$, $\sigma_{xz}$, and $\sigma_{yz}$ to zero:
+Now we can write the in-plane strains as functions of the in-plane stresses by selecting the first, second, and sixth lines of Eqn.~(\ref{3Dcompliance}) and setting $\sigma_{zz}$, $\sigma_{xz}$, and $\sigma_{yz}$ to zero:
 \begin{equation}
         \left\{ \begin{array}{c}
-           \epsilon_{xx}  \\  \epsilon_{yy}  \\  \gamma_{xy}
+           \varepsilon_{xx}  \\  \varepsilon_{yy}  \\  \gamma_{xy}
            \end{array} \right\}
            =
               \left[ \begin{array}{ccc}
@@ -132,13 +132,13 @@ Now we can write the in-plane strains as functions of the in-plane stresses by s
      Q_{61} &  Q_{62} &   Q_{66} 
     \end{array} \right] 
         \left\{ \begin{array}{c}
-           \epsilon_{xx}  \\  \epsilon_{yy}  \\  \gamma_{xy}
+           \varepsilon_{xx}  \\  \varepsilon_{yy}  \\  \gamma_{xy}
            \end{array} \right\}
      \label{laminaQ}
  \end{equation}
 This numbering of the entries in $[Q]$ is standard.  
 
-This route to obtain $[Q]$ is different from the ones usually used in books on composite mechanics, but it starts from the lamina information that is available when analyzing discontinuous fiber composites, which is the lamina stiffness tensor $\mathbf{C}$.  In practice all of these calculations are carried out numerically.
+This route to obtain $[Q]$ is different from the ones usually used in books on composite mechanics, but it starts from the lamina information that is available when analyzing discontinuous fiber composites, which is the lamina stiffness tensor $\mathbf{\Cfour}$.  In practice all of these calculations are carried out numerically.
 
 \subsection*{Laminate Loads and Moments}
 
@@ -184,17 +184,17 @@ These are also sketched in Fig.~\ref{Nfig}, where you can see that $M_x$ and $M_
 
 \subsection*{Kirchoff-Love Hypothesis}
 
-We would like to relate $\{ N \}$ and $\{ M \}$ to the deformation of the laminate.  To do this, classical lamination theory uses the Kirchoff-Love hypothesis, which is that material lines initially normal to the $x$--$y$ plane remain straight and normal during deformation.  This is the laminated-plate analogy of slender beam theory, the difference being that a plate can not only bend in response to $M_x$, it can also bend in response to $M_y$ moments and twist in response to $M_{xy}$.  
+We would like to relate $\{ N \}$ and $\{ M \}$ to the deformation of the laminate.  To do this, classical lamination theory uses the Kirchoff-Love hypothesis.  This states that any material line initially normal to the $x$--$y$ plane remains straight and normal during deformation.  This is the laminated-plate analogy of slender beam theory.  However, while both a plate and a beam can bend in response to $M_x$, a plate can also bend in response to $M_y$ and twist in response to $M_{xy}$.  
 
-With this hypothesis, the in-plane strains at any height $z$ are related to the strains on the midplane, which are $\epsilon^0_{xx}$, $\epsilon^0_{yy}$, and $\gamma^0_{xy}$, and to the midplane curvatures by
+With this hypothesis, the in-plane strains at any height $z$ are related to the strains on the midplane, which are $\varepsilon^0_{xx}$, $\varepsilon^0_{yy}$, and $\gamma^0_{xy}$, and to the midplane curvatures by
 \begin{equation}
 \renewcommand\arraystretch{1.2}
         \left\{ \begin{array}{c}
-           \epsilon_{xx}  \\  \epsilon_{yy}  \\  \gamma_{xy}
+           \varepsilon_{xx}  \\  \varepsilon_{yy}  \\  \gamma_{xy}
            \end{array} \right\}
            =
         \left\{ \begin{array}{c}
-           \epsilon^0_{xx}  \\  \epsilon^0_{yy}  \\  \gamma^0_{xy}
+           \varepsilon^0_{xx}  \\  \varepsilon^0_{yy}  \\  \gamma^0_{xy}
            \end{array} \right\}
            + z
         \left\{ \begin{array}{c}
@@ -202,7 +202,7 @@ With this hypothesis, the in-plane strains at any height $z$ are related to the 
            \end{array} \right\}
      \label{Kirchoff}
 \end{equation}
-In the absence of curvature, every layer has the same in-plane strain.  With curvature, each strain component increases linearly with $z$, the height from the midplane, in proportion to the corresponding curvature component.  This means that a positive $\kappa_{xx}$ describes a curvature that is concave toward the negative $z$ direction.  
+In the absence of curvature, every layer in a laminate has the same in-plane strain.  With curvature, strain increases linearly with $z$, in proportion to the corresponding component of curvature.  For example, a positive $\kappa_{xx}$ stretches the layers above the midplane, and compresses the layers below the midplane.  
 
 \subsection*{Laminate Stiffness Equations}
 
@@ -221,19 +221,19 @@ Equations~(\ref{laminaQ}--\ref{Kirchoff}) can be combined to write an overall re
       \end{array} \right]
 \renewcommand\arraystretch{1.2}
         \left\{ \begin{array}{c}
-           \epsilon^0_{xx}  \\  \epsilon^0_{yy}  \\  \gamma^0_{xy}  \\ \kappa_{xx}  \\  \kappa_{yy}  \\  \kappa_{xy}
+           \varepsilon^0_{xx}  \\  \varepsilon^0_{yy}  \\  \gamma^0_{xy}  \\ \kappa_{xx}  \\  \kappa_{yy}  \\  \kappa_{xy}
            \end{array} \right\}
      \label{laminateStiffness}     
 \end{equation}
-The $6 \times 6$ matrix on the right-hand side of this equation consists of four $3 \times 3$ sub-matrices, which are defined as
+The $6 \times 6$ matrix on the right-hand side of this equation contains several $3 \times 3$ sub-matrices, which are defined as
 \begin{align}
      [A] &= \int_{-H/2}^{H/2} \: [Q(z)] \: \ud z  \label{Amatrix} \\
      [B] &= \int_{-H/2}^{H/2} \: [Q(z)] \: z \ud z \label{Bmatrix}  \\
      [D] &= \int_{-H/2}^{H/2}\: [Q(z)] \: z^2 \ud z  \label{Dmatrix}
 \end{align}
-The plane-strain stiffness matrix $[Q]$ is a function of $z$ because fiber orientation varies across the thickness.  We can see that $[A]$ relates the midplane strains to the in-plane loads $\{ N \}$; $[D]$ relates the the midplane curvatures to the moments $\{ M \}$; and $[B]$ describes coupling, either between curvature and in-plane loads or between in-plane strains and moments.  If the laminate is symmetric about the midplane, i.e., if $[Q(z)] = [Q(-z)]$, then $[B] = 0$ and there is no coupling.  
+The plane-strain stiffness matrix $[Q]$ is a function of $z$ because different layers have different fiber orientation.  We can see that $[A]$ relates the midplane strains to the in-plane loads $\{ N \}$, while $[D]$ relates the the midplane curvatures to the moments $\{ M \}$.  The $[B]$ matrix describes coupling, either between curvature and in-plane loads or between in-plane strains and moments.  If the laminate is symmetric about the midplane, i.e., if $[Q(z)] = [Q(-z)]$, then $[B] = 0$ and there is no coupling.  
 
-To compute these matrices in a practical situation (and in \texttt{Clayer2laminate}), divide the laminate into $n$ discrete layers, and treat each layer as having a uniform value of $[Q]$.  Define $z_i$, $i = 1$ to $n$, such that layer $i$ extends from $z_{i-1}$ to $z_{i}$.  Then $z_0 = -H/2$ and $z_n = H/2$.  Let $[Q_i]$ be the plane-strain stiffness matrix for layer $i$.  Now Eqns.~(\ref{Amatrix}--\ref{Dmatrix}) can be integrated analytically for each layer, and the matrices computed as
+To compute these matrices in a practical situation (and in \texttt{Clayer2laminate}), divide the laminate into $n$ discrete layers, and treat each layer as having a uniform $[Q]$.  Number the layers $i = 1$ to $n$ from the bottom of the laminate to the top, and let $[Q_i]$ be the plane-strain stiffness matrix for layer $i$.  Define $z_i$ such that layer $i$ extends from $z_{i-1}$ to $z_{i}$, with $z_0 = -H/2$ and $z_n = H/2$.  Now Eqns.~(\ref{Amatrix}--\ref{Dmatrix}) can be integrated analytically for each layer, and the matrices computed as
 \begin{align}
      [A] &= \sum_{i=1}^n \: [Q_i] \: \left( z_i - z_{i-1} \right)  \label{Asum} \\
      [B] &= \sum_{i=1}^n  \: [Q_i] \: \left( \frac{z^2_i - z^2_{i-1}}{2} \right)  \label{Bsum}  \\
@@ -243,9 +243,9 @@ $[A]$, $[B]$ and $[D]$ fully describe the elastic behavior of the laminate, and 
 
 \subsection*{Extracting Tensile and Flexural Moduli}
 
-As discussed in Section~8.1.5, engineering constants like Young's modulus are defined in terms of a mechanical test where loads are applied and deformations are measured.  For the tensile modulus in the $x$ direction, a stress $\sigma_{xx}$ is applied, with all other stresses equal to zero, and the modulus is the ratio of the applied stress to $\epsilon_{xx}$.  For a laminate we'll used the midplane strain, and also require that there be no moments applied.  Then, the $x$-direction tensile modulus is
+As discussed in Section~8.1.5, any engineering constant like Young's modulus is defined in terms of a mechanical test where loads are applied and deformations are measured.  For the tensile modulus in the $x$ direction, a stress $\sigma_{xx}$ is applied, with all other stresses equal to zero, and the modulus is the ratio of the applied stress to $\varepsilon_{xx}$.  For a laminate we'll used the midplane strain, and also require that there be no moments applied.  Then, the $x$-direction tensile modulus is
 \begin{equation}
-    E^t_{xx} = \frac{\sigma_{xx}}{\epsilon^0_{xx}}   = \frac{N_{x}/H}{\epsilon^0_{xx}} 
+    E^t_{xx} = \frac{\sigma_{xx}}{\varepsilon^0_{xx}}   = \frac{N_{x}/H}{\varepsilon^0_{xx}} 
     \label{EtensileDef}
  \end{equation}
 We have used a superscript $t$ to indicate that this is a tensile modulus, and the second expression replaces the average stress $\sigma_{xx}$ with the load per unit width $N_x$.  A similar expression gives the $y$-direction tensile modulus.
@@ -255,7 +255,7 @@ To find the flexural modulus in the $x$ direction, one subjects the sample to a 
    M_x b = E^f_{xx} I \, \kappa_{xx} = \frac{E^f_{xx} b H^3}{12} \kappa_{xx}
    \label{momentCurvature}
 \end{equation}
-Here $I$ is the moment of inertia of the cross-section, and the superscript $f$ on $E$ indicates a flexural modulus.  Note that $M_x$ is a moment per unit width, so the total applied moment is $M_x b$.  We can cancel $b$ from both sides and rearrange this equation to get the effective flexural modulus,
+Here $I = bH^3/12$ is the moment of inertia of the cross-section, and the superscript $f$ on $E$ indicates a flexural modulus.  Note that $M_x$ is a moment per unit width, so the total applied moment is $M_x b$.  We can cancel $b$ from both sides and rearrange this equation to get the effective flexural modulus,
 \begin{equation}
    E^f_{xx} = \frac{12 M_x}{H^3 \kappa_{xx}}
    \label{EflexDef}
@@ -277,7 +277,7 @@ Now the strain-stress relationship for the laminate is
 \begin{equation}
 \renewcommand\arraystretch{1.2}
         \left\{ \begin{array}{c}
-           \epsilon^0_{xx}  \\  \epsilon^0_{yy}  \\  \gamma^0_{xy}  \\ \kappa_{xx}  \\  \kappa_{yy}  \\  \kappa_{xy}
+           \varepsilon^0_{xx}  \\  \varepsilon^0_{yy}  \\  \gamma^0_{xy}  \\ \kappa_{xx}  \\  \kappa_{yy}  \\  \kappa_{xy}
            \end{array} \right\}
            = [S^\mathrm{lam}] 
 \renewcommand\arraystretch{1.2}
@@ -286,7 +286,7 @@ Now the strain-stress relationship for the laminate is
    \end{array} \right\}
      \label{laminateCompliance}     
 \end{equation}
-For a tensile test, with all loads and moments zero except $N_x$, the midplane strain is $\epsilon^0_{xx} = S^\mathrm{lam}_{11} N_x$.  Using this in Eqn.~(\ref{EtensileDef}), we can calculate the laminate's tensile modulus in the $x$ direction using
+For a tensile test, with all loads and moments zero except $N_x$, the midplane strain is $\varepsilon^0_{xx} = S^\mathrm{lam}_{11} N_x$.  Using this in Eqn.~(\ref{EtensileDef}), we can calculate the laminate's tensile modulus in the $x$ direction as
 \begin{equation}
      E^t_{xx} = \frac{1}{S^\mathrm{lam}_{11} H} 
      \label{EtxxFinal}
