@@ -19,3 +19,5 @@ Included are functions to calculate:
 A number of smaller utility functions are also included.  Example scripts show how the functions are used in many common applications, and reproduce some of the figures and calculations from the book.   
 
 To use the tools, click the green **Code** button, and select **Download ZIP**.  Unzip the file and follow the installation suggestions in the _Documentation_ folder.  
+
+Python users may want to explore https://github.com/nilsmeyerkit/fiberoripy and several packages by https://github.com/JulianKarlBauer.
