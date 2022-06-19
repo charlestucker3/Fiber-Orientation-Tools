@@ -24,6 +24,10 @@ function [t, psi, phi, varargout] = solvePsi2D(L, CI, xi, tEnd, dtIn, ...
 %[T, PSI, PHI, AV, NSUB] = SOLVEPSI2D(... also returns NSUB, the number of 
 %    time sub-steps used for each DTIN step in the output.
 %
+%[T, PSI, PHI, AV, NSUB, A4V] = SOLVEPSI2D(... also returns A4V, the
+%    fourth-order orientation tensor at each time step.  A4V(J,K) is the
+%    contracted tensor component of A4 as in tens2vec4.m.  
+%
 %[T, PSI, PHI] = SOLVEPSI2D(L, ..., CO, SCHEME) controls the finite
 %    difference scheme.  Options for SCHEME are 'central' (central
 %    differencing, the default), 'upwind' (first-order upwind differencing;
@@ -173,6 +177,18 @@ if nargout >= 4
         Av(i,:) = pp * psi(:,i) * (2*dphi);
     end
     varargout{1} = Av;
+    
+    if nargout >= 6
+    % -- Compute the fourth-order orientation tensor at each time,
+    %    using the contracted form as in tens2vec4.m
+    A4v = zeros(nvals, 5);
+    pppp = [cos(phi).^4; sin(phi).^4; cos(phi).^2 .* sin(phi).^2; ...
+            cos(phi).^3 .* sin(phi); cos(phi) .* sin(phi).^3];
+    for i = 1:nvals
+        A4v(i,:) = pppp * psi(:,i) * (2*dphi);
+    end
+    varargout{3} = A4v;
+    end
 end
 
 if nargout >= 5
