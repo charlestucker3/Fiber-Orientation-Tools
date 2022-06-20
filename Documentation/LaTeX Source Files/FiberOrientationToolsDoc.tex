@@ -10,9 +10,10 @@
        Department of Mechanical Science and Engineering \\
         University of Illinois at Urbana-Champaign \\
         1206 W.~Green St. \\
-        Urbana, IL 61801 \\
+        Urbana, IL 61801
         }
 \include{defs}  % Macro definitions
+\date{Version 1.1 \\June 20, 2022}  % *********** Change this when updating the documentation *******************
 
 \begin{document}
 \maketitle
@@ -21,13 +22,15 @@ This document summarizes \textbf{Fiber Orientation Tools}, a set of \matlab\ fun
 
 The tools accompany the book \textit{Fundamentals of Fiber Orientation: Description, Measurement and Prediction} by C. L. Tucker III (Hanser, Munich, 2022), and references to sections, figures, and equations indicate items in the book.  
 
+Also included are functions from the article ``Planar Fiber Orientation: Jeffery, Non-Orthotropic Closures and Reconstructing Distribution Functions,'' submitted to the \textit{Journal of Non-Newtonian Fluid Mechanics}, June 2022.
+
  \matlab\ live scripts that demonstrate the use of various tools are described first, followed by a list of the functions in the toolkit, organized by category.  To see the details of any function, type \texttt{help} followed by the function name in the \matlab\ command window.
 
 
 
 \section{Live Scripts with Example Calculations}
 
-The live scripts are arranged topically, following the chapters of the book.  
+The live scripts are arranged topically, following the chapters of the book.  Scripts related the planar orientation journal article are listed last.
 
 \subsection*{Chapter 2.  Describing Fiber Orientation and Length}
 
@@ -109,31 +112,50 @@ The live scripts are arranged topically, following the chapters of the book.
     \item[LaminatedPlateProperties.mlx]{uses classical lamination theory, as implemented in \break \texttt{Clayer2laminate}, to find the tensile and flexural moduli of an injection molded composite whose orientation varies across the thickness.  Partial results from Table~8.4 are reproduced.  A summary of the underlying theory is given in \textbf{LaminationTheory.pdf} in the Documentation folder.}
 \end{description}
 
+
+
+\subsection*{Journal article: Planar Orientation Distributions}
+
+\begin{description}
+    
+    \item[PlanarDistnExamples.mlx]{calculates and plots example distribution functions for planar orientation.  These include the Jeffery, ER and Bingham distributions, as well as several fourth-order maximum entropy distributions.}
+    
+    \item[CreateNonOrthoClosure.mlx]{shows how to use \texttt{fitNonOrtho2D} to generate data for a variety of flow cases, fit a non-orthotropic (F) closure to the data, and add that closure to \texttt{closeA4planar}.}
+    
+    \item[TestPlanarClosure.mlx]{compares transient results from a distribution function calculation to several different closure approximations.  Both the tensor components and the scalar error measure are plotted.}
+    
+    \item[TestPlanarReconstruction.mlx]{compares different reconstruction strategies for planar distributions (Jeffery; Bingham; ER; and ME4 with the natural, ER, and F closures and the exact fourth-order tensor) against distribution functions calculated using the Folgar-Tucker model.  Transient errors are plotted, as well as the calculated and reconstructed distributions at the end time.  While the book recommended the Jeffery distribution for planar reconstruction, the paper shows that the fourth-order maximum entropy distribution (ME4) with the best available $\Afour$ information is a better choice.}
+    
+        
+\end{description}
+
 \section{Functions Listed by Category}
 
 \subsection{Operations on Orientation Tensors}
 
+Starting in version~1.1, all functions operate on either 3-D or 2-D (planar) tensors, except as noted.  The functions determine whether to return 2-D or 3-D results based on the dimensions of the input matrices.  
+
 \begin{description}
 
-    \item[eigsort]{returns the eigenvalues and eigenvectors of a tensor, sorted from largest eigenvalue to smallest.}
+    \item[eigsort]{returns the eigenvalues and eigenvectors of a second-order tensor, sorted from largest eigenvalue to smallest.}
 
-    \item[inv4]{finds the tensor inverse of a fourth-order tensor in $6 \times 6$ matrix form.}
+    \item[inv4]{finds the tensor inverse of a fourth-order tensor, in $6 \times 6$ matrix form for 3-D or $3 \times 3$ in 2-D.}
 
-    \item[p2A]{converts a set of $\pv$ vectors to second-order and fourth-order orientation tensors, with or without weighting factors.}
+    \item[p2A]{converts a set of $\pv$ vectors, with or without weighting factors, to second-order and fourth-order orientation tensors.}
 
     \item[rotate4]{performs a coordinate transformation on a fourth-order tensor.  See Section~A.4.5.}
 
-    \item[tens2vec]{converts a symmetric second-order tensor from $3 \times 3$ matrix form to $6 \times 1$ column vector (contracted) form.  See Section~2.3.5.1.}
+    \item[tens2vec]{converts a symmetric second-order tensor from $3 \times 3$ matrix form to $6 \times 1$ column vector (contracted) form.  See Section~2.3.5.1.  In 2-D the matrix is $2 \times 2$ and the vector is $3 \times 1$.}
 
-    \item[tens2vec4]{converts a symmetric fourth-order tensor from $6 \times 6$ matrix form to $15 \times 1$ column vector form.  This is not discussed in the book, but is used by \texttt{matchA}.}
+    \item[tens2vec4]{converts a symmetric fourth-order tensor from $6 \times 6$ matrix form to $15 \times 1$ column vector form.  This is not discussed in the book, but is used by \texttt{matchA} in 3-D, and for 2-D distribution function recovery.  In 2-D the matrix is $3 \times 3$ and the vector is $5 \times 1$.}
 
-    \item[thetaphi2A]{returns the second-order orientation tensor corresponding to a set of angles $(\theta, \phi)$ measured from planar section data (Section~3.1.1).  Either the Bay or Konicek weighting functions can be used.}
+    \item[thetaphi2A]{returns the second-order orientation tensor corresponding to a set of angles $(\theta, \phi)$ measured from planar section data (Section~3.1.1).  Either the Bay or Konicek weighting functions can be used.  3-D orientation only.}
 
-    \item[transisoA]{returns the full second-order orientation tensor $\A$ and fourth-order orientation tensor $\Afour$ for a transversely isotropic orientation state with given values of $A_{11}$ and $\Afour_{1111}$.}
+    \item[transisoA]{returns the full second-order orientation tensor $\A$ and fourth-order orientation tensor $\Afour$ for a transversely isotropic orientation state with given values of $A_{11}$ and $\Afour_{1111}$.  3- D orientation only.}
 
-    \item[vec2tens]{converts a symmetric second-order tensor from $6 \times 1$ column vector form to $3 \times 3$ matrix form.  See Section~2.3.5.1.}
+    \item[vec2tens]{converts a symmetric second-order tensor from $6 \times 1$ column vector form to $3 \times 3$ matrix form.  See Section~2.3.5.1.  In 2-D the vector is $3 \times 1$ and the matrix is $2 \times 2$.}
 
-    \item[vec2tens4]{converts a symmetric fourth-order tensor from $15 \times 1$ column vector form to $6 \times 6$ matrix form.  This is not discussed in the book, but is the inverse of \texttt{tens2vec4}.  It can be used to convert fourth-order tensor results from \texttt{solvePsi3D} and \texttt{solvePsiARD} to matrix form.}
+    \item[vec2tens4]{converts a symmetric fourth-order tensor from $15 \times 1$ column vector form to $6 \times 6$ matrix form.  In 2-D the vector is $5 \times 1$ and the matrix is $3 \times 3$  This is not discussed in the book, but is the inverse of \texttt{tens2vec4}.  It can be used to convert fourth-order tensor results from \texttt{solvePsi3D} and \texttt{solvePsiARD} to matrix form.}
     
 \end{description}
 
@@ -141,21 +163,31 @@ The live scripts are arranged topically, following the chapters of the book.
 
 \begin{description}
 
-    \item[Adot2]{gives the time derivative $\dot{\A}$ as a function of $\A$, $\mathbf{L}$ and orientation model parameters, for a wide range of orientation models.  This is the principal tool used to predict flow-induced orientation.}
+    \item[Adot2]{gives the time derivative $\dot{\A}$ as a function of $\A$, $\mathbf{L}$ and orientation model parameters, for a wide range of orientation models.  This is the principal tool used to predict 3-D flow-induced orientation.  The 2 in the name denotes a second-generation version of this function.}
     
-    \item[AdotJeffQuad]{gives the time derivative $\dot{\A}$ for the Jeffery model using the quadratic closure.  This is a simplified version of \texttt{Adot2}, used in Section~5.1.2 and Fig.~5.1.}
+    \item[AdotPlanar]{gives the time derivative $\dot{\A}$ as a function of $\A$, $\mathbf{L}$ and orientation model parameters for planar orientation.}
     
-    \item[Asteady]{finds the steady-state orientation tensor $\A$ for a given velocity gradient $\mathbf{L}$, for any orientation model in \texttt{Adot2}.}
+    \item[AdotJeffQuad]{gives the time derivative $\dot{\A}$ for the 3-D Jeffery model using the quadratic closure.  This is a simplified version of \texttt{Adot2}, used in Section~5.1.2 and Fig.~5.1.}
+    
+    \item[Asteady]{finds the steady-state 3-D orientation tensor $\A$ for a given velocity gradient $\mathbf{L}$, for any orientation model in \texttt{Adot2}.}
+    
+    \item[AsteadyPlanar]{finds the steady-state planar orientation tensor $\A$ for a given velocity gradient $\mathbf{L}$, for any orientation model in \texttt{AdotPlanar}.}
     
     \item[changep]{finds a set of current orientation vectors $\pv$ using the deformation form of Jeffery's equation, for a given set of initial vectors $\pv'$ and deformation gradient tensor $\F$.}
     
-    \item[closeA4]{uses any of several closure approximations to find the fourth-order orientation tensor $\Afour$ corresponding to a second-order tensor $\A$.  See Section~ 5.4.}  
+    \item[closeA4]{uses any of several 3-D closure approximations to find the fourth-order orientation tensor $\Afour$ corresponding to a second-order tensor $\A$.  See Section~ 5.4.}  
     
-    \item[fitARD]{finds the anisotropic rotary diffusion (ARD) model parameters that achieve given steady-state values of $A_{11}$ and $A_{33}$ in 1--3 simple shear flow.}  
+    \item[closeA4planar]{uses any of several closure approximations to find the planar fourth-order orientation tensor $\Afour$ corresponding to a planar second-order tensor $\A$.  This includes the non-orthotropic F closures.}  
     
-    \item[fitCI]{finds the interaction coefficient $C_I$ for the Folgar-Tucker model that achieves a given steady-state value of $A_{11}$ in simple shear flow.}
+    \item[fitARD]{finds the 3-D anisotropic rotary diffusion (ARD) model parameters that achieve given steady-state values of $A_{11}$ and $A_{33}$ in 1--3 simple shear flow.}  
     
-    \item[pDot]{gives the time derivative $\dot{ \pv}$ of an orientation vector $\pv$ using Jeffery's equation.  See Section~4.2.3.}
+    \item[fitCI]{finds the interaction coefficient $C_I$ for the 3-D Folgar-Tucker model that achieves a given steady-state value of $A_{11}$ in simple shear flow.}
+    
+    \item[fitNonOrtho2D]{determines the polynomial coefficients for a non-orthotropic, planar closure (F closure) for a given interaction coefficient and set of flow cases.  The utility function \texttt{printCoeff} is useful for formatting the results for pasting into \texttt{closeA4planar}.}
+    
+    \item[fitOrtho2D]{determines the polynomial coefficients for an orthotropic, planar closure (D closure) for a given interaction coefficient.  The utility function \texttt{printCoeff} is useful for formatting the results for pasting into \texttt{closeA4planar}.}
+    
+    \item[pDot]{gives the time derivative $\dot{ \pv}$ of a 3-D orientation vector $\pv$ using Jeffery's equation.  See Section~4.2.3.}
     
     \item[solvePsi2D]{solves for the orientation distribution function $\psi_\phi ( \phi, t)$ for the 2-D version of the Folgar-Tucker model.  See Sections~5.2.1 and 5.3.21}
     
@@ -163,7 +195,7 @@ The live scripts are arranged topically, following the chapters of the book.
     
     \item[solvePsiARD]{solves for the orientation distribution function $\psi( \theta, \phi, t)$ for 3-D anisotropic rotary diffusion models.  See Section~5.6.}
     
-    \item[tauFiber]{finds the extra-stress tensor $\btau$ for a fiber suspension, for a given orientation tensor $\A$ and rate of deformation $\D$, Eqn.~(6.29).}
+    \item[tauFiber]{finds the extra-stress tensor $\btau$ for a fiber suspension, for a given 3-D orientation tensor $\A$ and rate of deformation $\D$, Eqn.~(6.29).}
     
 \end{description}
 
@@ -187,7 +219,7 @@ The live scripts are arranged topically, following the chapters of the book.
     
     \item[diluteEshelby]{finds the stiffness tensor $\Cfour$ for a dilute composite with unidirectional alignment using Eshelby's equivalent inclusion.  This model is primarily of theoretical interest, and is used in Fig.~8.3.}    
     
-    \item[eng2C]{converts the engineering constants for an orthotropic material into a stiffness tensor $\Cfour$.}    
+    \item[eng2C]{converts the engineering constants for an orthotropic material into a stiffness tensor $\Cfour$.  See also \texttt{iso2C}.}    
     
     \item[eshtens]{returns the Eshelby tensor $\Efour$ for a spheroidal particle in an isotropic matrix.  The particle can be prolate (fiber-like), spherical, or oblate (disk-like).}
     
@@ -199,9 +231,9 @@ The live scripts are arranged topically, following the chapters of the book.
     
     \item[mori]{returns the stiffness tensor $\Cfour$ and thermal stress tensor $\bbeta$ for a unidirectional composite using the Mori-Tanaka model.}   
     
-    \item[oravg2]{computes the orientation average of a transversely isotropic second-order tensor, Eqn.~(8.81).}   
+    \item[oravg2]{computes the 3-D orientation average of a transversely isotropic second-order tensor, Eqn.~(8.81).}   
     
-    \item[oravg4]{computes the orientation average of a transversely isotropic fourth-order tensor, Eqn.~(8.77).}   
+    \item[oravg4]{computes the 3-D orientation average of a transversely isotropic fourth-order tensor, Eqn.~(8.77).}   
     
 \end{description}
 
@@ -209,11 +241,19 @@ The live scripts are arranged topically, following the chapters of the book.
 
 \begin{description}
 
-    \item[A2F]{find the orientation tensor $\A$ for any deformation gradient tensor $\F$ using the deformation form of Jeffery's equation.}
+    \item[A2F]{finds the 3-D deformation gradient tensor $\F$ for any orientation tensor $\A$ using the deformation form of Jeffery's equation.}
     
-    \item[F2A]{returns the orientation tensor $\A$ for a given deformation gradient tensor $\F$ using Jeffery's model.}
+    \item[F2A]{returns the 3-D orientation tensor $\A$ for a given deformation gradient tensor $\F$ using Jeffery's model.}
     
-    \item[matchA,]{given a set of orientation vectors $\pv^i$ and weights $f^i$, adjusts the weights to exactly match a given second-order or fourth-order orientation tensor, while minimizing the mean square difference between the original and adjusted weights.  WARNING: This function can return negative values for some weights, usually when the orientation state is highly aligned.  See \texttt{RecontructDiscreteDistributionFcn.mlx} for examples.}    
+    \item[fitBingham2D]{finds the Bingham distribution that matches a given planar second-order orientation tensor $\A$.}
+    
+    \item[fitERdistn2D]{finds the ellipse radius (ER) distribution that matches a given planar second-order orientation tensor $\A$.}
+    
+    \item[Jefferydistn2D]{finds the Jeffery distribution that matches a given planar second-order orientation tensor $\A$.}
+    
+    \item[fitMaxEntropy2D]{finds the fourth-order maximum entropy distribution (ME4) that matches a given planar fourth-order orientation tensor $\Afour$.}
+    
+    \item[matchA,]{given a set of 3-D orientation vectors $\pv^i$ and weights $f^i$, adjusts the weights to exactly match a given second-order or fourth-order orientation tensor, while minimizing the mean square difference between the original and adjusted weights.  WARNING: This function can return negative values for some weights, usually when the orientation state is highly aligned.  See \texttt{RecontructDiscreteDistributionFcn.mlx} for examples.}    
     
 \end{description}
 
@@ -221,7 +261,7 @@ The live scripts are arranged topically, following the chapters of the book.
 
 \begin{description}
     
-    \item[drawPsi]{draws a sphere colored by the Jeffery orientation distribution function for a given deformation gradient tensor $\F$.}
+    \item[drawPsi]{draws a sphere colored by the 3-D Jeffery orientation distribution function for a given deformation gradient tensor $\F$.}
 
     \item[fill3elt]{draws a triangular mesh in three dimensions, colored according to element values.}
 
@@ -229,17 +269,23 @@ The live scripts are arranged topically, following the chapters of the book.
 
     \item[meshcon]{builds the edge connectivity information for a triangular mesh, as needed by \texttt{refinemesh}.}
 
-    \item[p2sph]{converts a set of $\pv$ vectors to the angles $(\theta, \phi)$ in a spherical coordinate system.}
+    \item[p2sph]{converts a set of 3-D $\pv$ vectors to the angles $(\theta, \phi)$ in a spherical coordinate system.}
 
     \item[plot3mesh]{draws the elements of a triangular mesh in three dimensions.}
 
     \item[plot3nodes]{draws the nodes of a mesh in three dimensions.}
+
+    \item[polyfit2]{finds a polynomial function of two variables $\hat{z}(x, y)$ that best fits a set of data $z_i(x_i, y_i)$.  Equality constraints can be enforced if desired.}
+
+    \item[polyfit2]{evaluates a polynomial function of two variables $\hat{z}(x, y)$ using coefficients in the form returned by \texttt{polyfit2}.}
+
+    \item[printCoeff]{formats a vector of polynomial coefficients and prints them to the console.  From there, they can then be copied and pasted into a \textsc{Matlab} code such as \texttt{closeA4planar}.}
     
     \item[randomfibers]{generates a set of fiber orientation vectors $\pv$, randomly oriented in three dimensions.}
 
     \item[refinemesh]{refines a triangular mesh by dividing each initial element into $n^2$ smaller ones.}
 
-    \item[sph2p]{converts a set angles $(\theta, \phi)$ in a spherical coordinate system into unit vectors $\pv$.}
+    \item[sph2p]{converts a set of angle pairs $(\theta, \phi)$ in a spherical coordinate system into unit vectors $\pv$.}
 
     \item[spheremesh]{generates different types of triangular meshes on a unit sphere, or on half of a sphere.}
 
